@@ -71,7 +71,7 @@ void CTimer::IRQ_Callback()
         mCallback();
 }
 
-bool CTimer::Is_Timer_IRQ_Pending()
+bool CTimer::Is_IRQ_Pending()
 {
     return Regs(hal::Timer_Reg::IRQ_Masked);
 }

@@ -4,6 +4,7 @@
 #include <interrupt_controller.h>
 #include <drivers/gpio.h>
 #include <drivers/timer.h>
+#include <drivers/uart.h>
 #include <process/process_manager.h>
 #include <process/swi.h>
 
@@ -48,8 +49,12 @@ extern "C" void _internal_irq_handler()
     sGPIO.Handle_IRQ();
 
     // casovac
-    if (sTimer.Is_Timer_IRQ_Pending())
+    if (sTimer.Is_IRQ_Pending())
         sTimer.IRQ_Callback();
+
+    // UART
+    if (sUART0.Is_IRQ_Pending())
+        sUART0.IRQ_Callback();
 }
 
 extern "C" void __attribute__((interrupt("FIQ"))) fast_interrupt_handler()

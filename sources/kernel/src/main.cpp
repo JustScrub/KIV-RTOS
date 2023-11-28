@@ -59,8 +59,9 @@ extern "C" int _kernel_main(void)
 	// nastavime casovac - v callbacku se provadi planovani procesu
 	sTimer.Enable(Timer_Callback, 0x80, NTimer_Prescaler::Prescaler_1);
 
-	// povolime IRQ casovace
+	// povolime IRQ casovace a UARTu
 	sInterruptCtl.Enable_Basic_IRQ(hal::IRQ_Basic_Source::Timer);
+	sInterruptCtl.Enable_IRQ(hal::IRQ_Source::UART);
 
 	// povolime IRQ (nebudeme je maskovat) a od tohoto momentu je vse v rukou planovace
 	sInterruptCtl.Set_Mask_IRQ(false);

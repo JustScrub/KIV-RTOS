@@ -40,7 +40,7 @@ class CTimer
         // IRQ handler vola tuto rutinu po signalizaci IRQ
         void IRQ_Callback();
         // pokud casovac signalizoval preruseni, tato metoda vraci true
-        bool Is_Timer_IRQ_Pending();
+        bool Is_IRQ_Pending();
 
         // ziska pocet tiku
         uint32_t Get_Tick_Count() const;

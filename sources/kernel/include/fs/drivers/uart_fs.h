@@ -27,7 +27,14 @@ class CUART_File final : public IFile
 
         virtual uint32_t Read(char* buffer, uint32_t num) override
         {
-            // NYI, prijde nejspis az s kernel buffery a prerusenimi z UARTu
+            if (num > 0 && buffer != nullptr)
+            {
+                if (mChannel == 0)
+                {
+                    uint32_t read = sUART0.Read(buffer, num);
+                    return read;
+                }
+            }
 
             return 0;
         }
