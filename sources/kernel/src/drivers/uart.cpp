@@ -181,13 +181,12 @@ void CUART::IRQ_Callback()
     if (!mOpened)
         return;
 
-    // TODO: overflow flag - pokud je buffer plny, zahodit znak a nastavit priznak
-
     for(int i = 0; i < UART_BULK_WAIT; i++)
     {
+        // TODO: overflow flag - pokud je buffer plny, zahodit znak a nastavit priznak
         if(mBuffer_Count >= UART_BFR_SIZE)
             break;
-            
+
         // dokud ma status registr priznak "vstupni fronta prazdna", nelze cist dalsi bit
         if (!(mAUX.Get_Register(hal::AUX_Reg::MU_LSR) & (1 << 0)))
             continue;
