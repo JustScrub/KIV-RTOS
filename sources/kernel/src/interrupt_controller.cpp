@@ -48,13 +48,13 @@ extern "C" void _internal_irq_handler()
     // GPIO (samo si overi, zda k nejakemu doslo)
     sGPIO.Handle_IRQ();
 
-    // casovac
-    if (sTimer.Is_IRQ_Pending())
-        sTimer.IRQ_Callback();
-
     // UART
     if (sUART0.Is_IRQ_Pending())
         sUART0.IRQ_Callback();
+
+    // casovac
+    if (sTimer.Is_IRQ_Pending())
+        sTimer.IRQ_Callback();
 }
 
 extern "C" void __attribute__((interrupt("FIQ"))) fast_interrupt_handler()

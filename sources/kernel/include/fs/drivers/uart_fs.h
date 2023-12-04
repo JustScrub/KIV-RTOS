@@ -62,6 +62,8 @@ class CUART_File final : public IFile
                 sUART0.Close();
             mChannel = -1;
 
+            sUART0.mOwner = nullptr;
+
             return IFile::Close();
         }
 
@@ -91,6 +93,19 @@ class CUART_File final : public IFile
             }
             return false;
         }
+
+        virtual bool Wait(uint32_t count) override
+        {
+            if (mChannel == 0)
+            {
+                if (sUART0.Get_Bytes_Available() >= count)
+                    return true;
+            }
+
+            Wait_Enqueue_Current();
+            sProcessMgr.Block_Current_Process();
+            return sUART0.Get_Bytes_Available() >= count;
+        }
 };
 
 class CUART_FS_Driver : public IFilesystem_Driver
@@ -105,6 +120,9 @@ class CUART_FS_Driver : public IFilesystem_Driver
         {
             // jedina slozka path - kanal UARTu
 
+            if (sUART0.mOwner != nullptr)
+                return nullptr;
+
             int channel = atoi(path);
             if (channel != 0) // mame jen jeden kanal
                 return nullptr;
@@ -112,7 +130,9 @@ class CUART_FS_Driver : public IFilesystem_Driver
             if (!sUART0.Open())
                 return nullptr;
 
+
             CUART_File* f = new CUART_File(channel);
+            sUART0.mOwner = f;
 
             return f;
         }

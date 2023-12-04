@@ -198,6 +198,8 @@ void CUART::IRQ_Callback()
         mBuffer[(mBuffer_Tail + mBuffer_Count)%UART_BFR_SIZE] = c;
         mBuffer_Count++;
     }
+
+    mOwner->Notify(NotifyAll); //vzdy max 1 proces
 }
 
 uint32_t CUART::Read(char *buf, unsigned int len)
@@ -215,4 +217,12 @@ uint32_t CUART::Read(char *buf, unsigned int len)
     }
 
     return i;
+}
+
+uint32_t CUART::Get_Bytes_Available()
+{
+    if (!mOpened)
+        return 0;
+
+    return mBuffer_Count;
 }
