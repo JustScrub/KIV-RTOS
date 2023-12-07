@@ -38,7 +38,7 @@ class IFile;
 
 constexpr uint32_t Task_Heap_Start = 0x00400000;
 constexpr uint32_t Task_Max_Heap_Pages = 16;
-constexpr uint32_t Task_Last_Heap_Page = Task_Heap_Start + Task_Max_Heap_Pages * mem::PageSize;
+constexpr uint32_t Task_Heap_End = Task_Heap_Start + Task_Max_Heap_Pages * mem::PageSize;
 
 // struktura procesu (tasku, ...)
 struct TTask_Struct
