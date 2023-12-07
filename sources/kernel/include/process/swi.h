@@ -62,7 +62,7 @@ enum class NSWI_Process_Service
     // Prida procesu ramec a vrati jeho virtualni adresu
     // IN:  -
     // OUT: r0 = virtualni adresa prideleneho ramce
-    Add_Frame       = 6,
+    Gib_Frame       = 6,
 };
 
 enum class NSWI_Filesystem_Service

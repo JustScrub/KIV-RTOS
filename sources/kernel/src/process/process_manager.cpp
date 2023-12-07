@@ -152,6 +152,9 @@ uint32_t CProcess_Manager::Create_Process(unsigned char* elf_file_data, unsigned
     for (uint32_t i = 0; i < Max_Process_Opened_Files; i++)
         task->opened_files[i] = nullptr;
 
+    for (uint32_t i = 0; i < Task_Max_Heap_Pages; i++)
+        task->heap_frames_phys[i] = 0;
+
     return task->pid;
 }
 
@@ -248,6 +251,57 @@ bool CProcess_Manager::Unmap_File_Current(uint32_t handle)
     return true;
 }
 
+uint32_t CProcess_Manager::Alloc_Frame_To_Current()
+{
+    TTask_Struct* current = Get_Current_Process();
+    if (!current)
+        return Invalid_Handle;
+
+    // najdeme volny slot, pokud je
+    int i;
+    for (i = 0; i < Task_Max_Heap_Pages; i++)
+    {
+        if (current->heap_frames_phys[i] == 0)
+            break;
+    }
+    if(i == Task_Max_Heap_Pages)
+        return Invalid_Handle;
+
+    // volny slot - ulozime fyzickou adresu stranky (pokud se nam ji podari alokovat)
+    current->heap_frames_phys[i] = static_cast<unsigned long>(sPage_Manager.Alloc_Page());
+    if(current->heap_frames_phys[i] == 0)
+        return Invalid_Handle;
+    current->heap_frames_phys[i] -= mem::MemoryVirtualBase;
+
+    // namapujeme stranku do adresniho prostoru procesu
+    uint32_t* pt = reinterpret_cast<uint32_t*>(current->cpu_context.ttbr0 + mem::MemoryVirtualBase);
+    map_memory(pt, current->heap_frames_phys[i], Task_Heap_Start + i * mem::PageSize);
+
+    return Task_Heap_Start + i * mem::PageSize;
+}
+
+bool CProcess_Manager::Free_Heap_Current()
+{
+    TTask_Struct* current = Get_Current_Process();
+    if (!current)
+        return false;
+
+    uint32_t* pt = reinterpret_cast<uint32_t*>(current->cpu_context.ttbr0 + mem::MemoryVirtualBase);
+
+    // projdeme vsechny alokovane stranky a uvolnime je
+    for (int i = 0; i < Task_Max_Heap_Pages; i++)
+    {
+        if (current->heap_frames_phys[i] != 0)
+        {
+            unmap_memory(pt, Task_Heap_Start + i * mem::PageSize);
+            sPage_Manager.Free_Page(current->heap_frames_phys[i]);
+            current->heap_frames_phys[i] = 0;
+        }
+    }
+
+    return true;
+}
+
 void CProcess_Manager::Handle_Process_SWI(NSWI_Process_Service svc_idx, uint32_t r0, uint32_t r1, uint32_t r2, TSWI_Result& target)
 {
     // TODO: signalizace chyby
@@ -263,6 +317,7 @@ void CProcess_Manager::Handle_Process_SWI(NSWI_Process_Service svc_idx, uint32_t
             mCurrent_Task_Node->task->sched_counter = 1;
             mCurrent_Task_Node->task->state = NTask_State::Zombie;
             mCurrent_Task_Node->task->exit_code = r0;
+            Free_Heap_Current();
             Schedule();
             break;
         case NSWI_Process_Service::Yield:
@@ -295,6 +350,12 @@ void CProcess_Manager::Handle_Process_SWI(NSWI_Process_Service svc_idx, uint32_t
             }
             break;
         }
+
+        case NSWI_Process_Service::Gib_Frame:
+            target.r0 = Alloc_Frame_To_Current();
+            if (target.r0 == Invalid_Handle)
+                target.r0 = 0;
+            break;
     }
 }
 

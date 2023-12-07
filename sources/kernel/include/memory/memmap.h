@@ -6,7 +6,7 @@
 namespace mem
 {
     // velikost jedne stranky (1MB)
-    constexpr uint32_t PageSize = 0x100000;
+    constexpr uint32_t PageSize = 0x00100000;
 
     // adresa od ktere zacneme alokovat - pro ted hardcoded, do budoucna je treba zjistit velikost kernelu a zarovnat
     // na nejblizsi vyssi nasobek velikosti stranky (1MB, popr. co si zvolime dle dostupnych moznosti)

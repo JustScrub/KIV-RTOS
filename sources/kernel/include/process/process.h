@@ -36,6 +36,10 @@ struct TCPU_Context
 
 class IFile;
 
+constexpr uint32_t Task_Heap_Start = 0x00400000;
+constexpr uint32_t Task_Max_Heap_Pages = 16;
+constexpr uint32_t Task_Last_Heap_Page = Task_Heap_Start + Task_Max_Heap_Pages * mem::PageSize;
+
 // struktura procesu (tasku, ...)
 struct TTask_Struct
 {
@@ -45,6 +49,7 @@ struct TTask_Struct
     unsigned int sched_counter;                 // pocitadlo - jakmile je proces naplanovan, zkopiruje se do nej priorita a kazdy tik casovace snizuje toto cislo o 1; na 0 se preplanuje na jiny proces
     unsigned int sched_static_priority;         // staticka priorita procesu (dana pri jeho vytvareni)
     IFile* opened_files[Max_Process_Opened_Files];  // otevrene soubory; index je zaroven handle
+    uint32_t heap_frames_phys[Task_Max_Heap_Pages]; // fyzicke adresy stranek haldy
     int exit_code;                              // navratovy kod procesu; nastaveny pri volani terminate nebo pri vyvolanem data/prefetch abortu a jinych
     uint32_t sleep_timer;                       // casovac pro uspane procesy - jakmile systemovy citac prekroci tuto hodnotu, proces je odblokovan
                                                 // maximalni podporovany rozsah cekani je 0x7FFFFFFF, jelikoz muze citac pretect; diference je vzdy pocitana i s moznosti preteceni

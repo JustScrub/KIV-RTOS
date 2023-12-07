@@ -52,3 +52,8 @@ void map_memory(uint32_t* target_pt, uint32_t phys, uint32_t virt)
             | DL1_Flags::TEX_001
             | DL1_Flags::Shareable;
 }
+
+void unmap_memory(uint32_t* target_pt, uint32_t virt)
+{
+    target_pt[PT_Entry(virt)] = 0;
+}

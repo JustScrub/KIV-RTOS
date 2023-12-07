@@ -15,7 +15,7 @@ class CPage_Manager
 
         // alokuje novou stranku, vraci virtualni adresu pridelene stranky v adresnim prostoru kernelu
         uint32_t Alloc_Page();
-        // dealokuje stranku s danou virtualni adresou (adr. prostor kernelu)
+        // dealokuje stranku s danou fyzickou adresou 
         void Free_Page(uint32_t fa);
 };
 
