@@ -251,31 +251,34 @@ bool CProcess_Manager::Unmap_File_Current(uint32_t handle)
     return true;
 }
 
-uint32_t CProcess_Manager::Alloc_Frame_To_Current()
+uint32_t CProcess_Manager::Alloc_Frames_To_Current(uint32_t count)
 {
     TTask_Struct* current = Get_Current_Process();
-    if (!current)
+    if (!current || count == 0)
         return Invalid_Handle;
 
-    // najdeme volny slot, pokud je
+    // najdeme volny slot, pokud tam je (sloty za nim jsou take volne)
     int i;
     for (i = 0; i < Task_Max_Heap_Pages; i++)
     {
         if (current->heap_frames_phys[i] == 0)
             break;
     }
-    if(i == Task_Max_Heap_Pages)
+    if(i + count > Task_Max_Heap_Pages)
         return Invalid_Handle;
 
-    // volny slot - ulozime fyzickou adresu stranky (pokud se nam ji podari alokovat)
-    current->heap_frames_phys[i] = static_cast<unsigned long>(sPage_Manager.Alloc_Page());
-    if(current->heap_frames_phys[i] == 0)
+    uint32_t pages[Task_Max_Heap_Pages]; // mohli bychom pouzit i C99 VLA, ale ty C++ negarantuje :(
+                                         // chovani je ale aspon konzistentni - vzdy se alokuje na stacku stejne velky blok
+    if (!sPage_Manager.Alloc_Pages(count, pages))
         return Invalid_Handle;
-    current->heap_frames_phys[i] -= mem::MemoryVirtualBase;
 
-    // namapujeme stranku do adresniho prostoru procesu
     uint32_t* pt = reinterpret_cast<uint32_t*>(current->cpu_context.ttbr0 + mem::MemoryVirtualBase);
-    map_memory(pt, current->heap_frames_phys[i], Task_Heap_Start + i * mem::PageSize);
+    for(;count > 0; --count)
+    {
+        current->heap_frames_phys[i+count-1] = pages[count - 1] - mem::MemoryVirtualBase;
+        // namapujeme stranku do adresniho prostoru procesu
+        map_memory(pt, current->heap_frames_phys[i+count-1], Task_Heap_Start + (i+count-1) * mem::PageSize);
+    }
 
     return Task_Heap_Start + i * mem::PageSize;
 }
@@ -352,7 +355,7 @@ void CProcess_Manager::Handle_Process_SWI(NSWI_Process_Service svc_idx, uint32_t
         }
 
         case NSWI_Process_Service::Gib_Frame:
-            target.r0 = Alloc_Frame_To_Current();
+            target.r0 = Alloc_Frames_To_Current(r0);
             if (target.r0 == Invalid_Handle)
                 target.r0 = 0;
             break;

@@ -8,4 +8,4 @@ using uint8_t = unsigned char;
 using uint16_t = unsigned short;
 using uint32_t = unsigned int;
 
-using size_t = unsigned long long;
+using size_t = unsigned long;

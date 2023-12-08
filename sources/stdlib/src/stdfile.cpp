@@ -162,10 +162,11 @@ uint32_t get_task_ticks_to_deadline()
 }
 
 
-void *i_am_once_again_asking_for_your_memory_support()
+void *i_am_once_again_asking_for_your_memory_support(uint32_t amount)
 {
     uint32_t retval;
 
+    asm volatile("mov r0, %0" : : "r" (amount));
     asm volatile("swi 6");
     asm volatile("mov %0, r0" : "=r" (retval));
 
