@@ -5,6 +5,4 @@
 #include <process/process.h>
 #include <stdfile.h>
 
-uint32_t __stdalloc_mem_offset = 0;
-
 void *malloc(size_t size);

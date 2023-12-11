@@ -1,5 +1,7 @@
 #include <stdalloc.h>
 
+uint32_t __stdalloc_mem_offset = 0;
+
 inline int32_t sz2pgs(uint32_t size)
 {
     return size / mem::PageSize + (bool)(size % mem::PageSize);

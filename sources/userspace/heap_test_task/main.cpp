@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 
     size_t alloc_sizes[] = {mem::PageSize, 1, 0, mem::PageSize-1, mem::PageSize/2, mem::PageSize/2,
                             12*mem::PageSize, mem::PageSize, 1};
-    char* allocs[] = {"alloc first", "alloc 1 byte", "alloc 0", "alloc page size -1", "alloc half first", "alloc half second",
+    const char* allocs[] = {"alloc first", "alloc 1 byte", "alloc 0", "alloc page size -1", "alloc half first", "alloc half second",
                       "alloc 12 pages", "alloc last", "alloc beyond"};
 
     char sptr[9] = "";
