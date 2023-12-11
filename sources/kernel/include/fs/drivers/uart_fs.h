@@ -5,6 +5,7 @@
 #include <memory/kernel_heap.h>
 #include <fs/filesystem.h>
 #include <stdstring.h>
+#include <process/process_manager.h>
 
 // virtualni UART soubor
 class CUART_File final : public IFile

@@ -4,7 +4,6 @@
 #include <drivers/bcm_aux.h>
 #include <drivers/bridges/uart_defs.h>
 #include <fs/filesystem.h>
-#include <fs/drivers/uart_fs.h>
 
 constexpr int UART_BFR_SIZE=256;
 constexpr int UART_BULK_WAIT=1000000;
