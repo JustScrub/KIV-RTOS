@@ -5,11 +5,7 @@
 #include <drivers/bridges/uart_defs.h>
 #include <process/process.h>
 
-/**
- * Logger task
- * 
- * Prijima vsechny udalosti od ostatnich tasku a oznamuje je skrz UART hostiteli
- **/
+#define TASK_DEADLINE 1000
 
 static void fputs(uint32_t file, const char* string)
 {
@@ -18,12 +14,14 @@ static void fputs(uint32_t file, const char* string)
 
 int main(int argc, char** argv)
 {
-	uint32_t uart_file = open("DEV:uart/0", NFile_Open_Mode::Write_Only);
+	uint32_t uart_file = open("DEV:uart/0", NFile_Open_Mode::Read_Write);
 
 	TUART_IOCtl_Params params;
 	params.baud_rate = NUART_Baud_Rate::BR_115200;
 	params.char_length = NUART_Char_Length::Char_8;
 	ioctl(uart_file, NIOCtl_Operation::Set_Params, &params);
+
+    set_task_deadline(TASK_DEADLINE);
 
 	fputs(uart_file, "UART test task starting!");
 
@@ -31,7 +29,7 @@ int main(int argc, char** argv)
     int r = 0;
     for(;;)
     {
-        while(wait(uart_file, 1, Deadline_Unchanged) == NSWI_Result_Code::Fail)
+        while(wait(uart_file, 1, TASK_DEADLINE) == NSWI_Result_Code::Fail)
             ;
         r = read(uart_file, buf, 16);
         if (r > 0)

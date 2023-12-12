@@ -97,15 +97,14 @@ class CUART_File final : public IFile
 
         virtual bool Wait(uint32_t count) override
         {
-            if (mChannel == 0)
-            {
-                if (sUART0.Get_Bytes_Available() >= count)
-                    return true;
-            }
+            if (sUART0.Get_Bytes_Available() >= count)
+                return false;
 
             Wait_Enqueue_Current();
             sProcessMgr.Block_Current_Process();
-            return sUART0.Get_Bytes_Available() >= count;
+            return sUART0.Get_Bytes_Available() < count;
+            // wait syscall vraci NSWI_Result_Code, kde success == 0
+            // ==> vracime negaci vysledku (false, kdyz je dostatek znaku na UARTu)
         }
 };
 

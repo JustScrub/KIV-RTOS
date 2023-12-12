@@ -43,7 +43,7 @@ bool CUART::Open()
 
     // nastavime vychozi rychlost a velikost znaku
     Set_Char_Length(NUART_Char_Length::Char_8);
-    Set_Baud_Rate(NUART_Baud_Rate::BR_9600);
+    Set_Baud_Rate(NUART_Baud_Rate::BR_115200);
 
     return true;
 }
