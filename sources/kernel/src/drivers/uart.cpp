@@ -181,7 +181,7 @@ void CUART::IRQ_Callback()
     if (!mOpened)
         return;
 
-    for(int i = 0; i < UART_BULK_WAIT; i++)
+    for(int i = 0; i < UART_IRQ_WAIT; i++)
     {
         // TODO: overflow flag - pokud je buffer plny, zahodit znak a nastavit priznak
         if(mBuffer_Count >= UART_BFR_SIZE)
@@ -197,6 +197,7 @@ void CUART::IRQ_Callback()
         // ulozime ho do bufferu
         mBuffer[(mBuffer_Tail + mBuffer_Count)%UART_BFR_SIZE] = c;
         mBuffer_Count++;
+        i=0;
     }
 
     mOwner->Notify(NotifyAll); //vzdy max 1 proces
