@@ -6,7 +6,7 @@
 #include <fs/filesystem.h>
 
 constexpr int UART_BFR_SIZE=256;
-constexpr int UART_IRQ_WAIT=10000;
+constexpr int UART_IRQ_WAIT=0x80000;
 
 class CUART
 {

@@ -5,8 +5,8 @@
 
 void blink(int sos_led,bool on)
 {
-	write(sos_led, on?"1": "0", 1);
-	for(int i = 0; i < 100000; i++)
+	write(sos_led, on?"0": "1", 1);
+	for(int i = 0; i < 10000; i++)
 		;
 }
 

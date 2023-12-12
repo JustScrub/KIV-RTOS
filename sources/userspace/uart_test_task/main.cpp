@@ -29,17 +29,17 @@ int main(int argc, char** argv)
     int r = 0;
     for(;;)
     {
-        while(wait(uart_file, 1, TASK_DEADLINE) == NSWI_Result_Code::Fail)
+        while(wait(uart_file, 4, TASK_DEADLINE) == NSWI_Result_Code::Fail)
             ;
         r = read(uart_file, buf, 16);
         if (r > 0)
         {
             fputs(uart_file, "UART test task received: ");
             write(uart_file, buf, r);
-            fputs(uart_file, "\n");
+            fputs(uart_file, "\r\n");
         }
         else
-            fputs(uart_file, "UART test task received nothing\n");
+            fputs(uart_file, "UART test task received nothing\r\n");
         bzero(buf, 16);
     }
 }
