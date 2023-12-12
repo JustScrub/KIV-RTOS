@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 	// systemovy init task startuje jako prvni, a ma nejnizsi prioritu ze vsech - bude se tedy planovat v podstate jen tehdy,
 	// kdy nic jineho nikdo nema na praci
 
-	int led = open("DEV:gpio/18", NFile_Open_Mode::Write_Only);
+	int led = open("DEV:gpio/47", NFile_Open_Mode::Write_Only);
 	bool on = true;
 
 	// nastavime deadline na "nekonecno" = vlastne snizime dynamickou prioritu na nejnizsi moznou
