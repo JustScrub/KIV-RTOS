@@ -15,21 +15,32 @@ int main(int argc, char** argv)
 
     size_t alloc_sizes[] = {mem::PageSize, 1, 0, mem::PageSize-1, mem::PageSize/2, mem::PageSize/2,
                             12*mem::PageSize, mem::PageSize, 1};
-    const char* allocs[] = {"alloc first", "alloc 1 byte", "alloc 0", "alloc page size -1", "alloc half first", "alloc half second",
-                      "alloc 12 pages", "alloc last", "alloc beyond"};
+    const char* allocs[] = {"alloc first ", "alloc 1 byte ", "alloc 0 ", "alloc page size -1 ", "alloc half first ", "alloc half second ",
+                      "alloc 12 pages ", "alloc last ", "alloc beyond "};
 
-    char sptr[9] = "";
+    char sptr[16] = {0};
+    char* ptr;
+    write(uarth, "Heap test\r\n", 11);
     for (size_t i = 0; i < sizeof(alloc_sizes)/sizeof(size_t); i++)
     {
-        bzero(sptr, 9);
-        char* ptr = (char*)malloc(alloc_sizes[i]);
+        bzero(sptr, 16);
+        write(uarth, "Allocating ", 11);
+        ptr = (char*)malloc(alloc_sizes[i]);
         write(uarth, allocs[i], strlen(allocs[i]));
-        write(uarth, "\n", 1);
+        write(uarth, "\r\n", 2);
         itoa((uint32_t)ptr, sptr, 16);
         write(uarth, sptr, strlen(sptr));
-        write(uarth, "\n", 1);
+        write(uarth, "\r\n", 2);
     }
 
+    close(uarth);
+    uarth =open("DEV:gpio/47", NFile_Open_Mode::Write_Only);
+    strncpy(sptr, "01", 3);
+    ptr = sptr;
     for(;;)
-        ;
+        {
+            write(uarth, ptr, 1);
+            sleep(0x80000);
+            ptr = (*ptr == '0' ? sptr+1 : sptr);
+        }   
 }

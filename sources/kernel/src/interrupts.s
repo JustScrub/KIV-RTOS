@@ -82,12 +82,15 @@ irq_handler:
 ;@ korektne zpet); my swap ale nemame a asi ani mit nebudeme, a tak proste jen ukoncime proces, protoze nejspis dela neplechu
 
 undefined_instruction_handler:
+	mov r0, #64	
 	b generic_abort_handler
 
 prefetch_abort_handler:
+	mov r0, #65
 	b generic_abort_handler
 
 data_abort_handler:
+	mov r0, #66
 	b generic_abort_handler
 
 generic_abort_handler:
@@ -98,7 +101,7 @@ generic_abort_handler:
 	;@push {r0-r12}
 	;@push {lr}
 
-	mov r0, #64			;@ nejaky navratovy kod, abychom mohli treba ladit
+	;@mov r0, #64			;@ nejaky navratovy kod, abychom mohli treba ladit
 	svc #1
 
 	b hang
