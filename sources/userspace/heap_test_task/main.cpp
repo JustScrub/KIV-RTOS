@@ -31,16 +31,8 @@ int main(int argc, char** argv)
         itoa((uint32_t)ptr, sptr, 16);
         write(uarth, sptr, strlen(sptr));
         write(uarth, "\r\n", 2);
-    }
 
-    close(uarth);
-    uarth =open("DEV:gpio/47", NFile_Open_Mode::Write_Only);
-    strncpy(sptr, "01", 3);
-    ptr = sptr;
-    for(;;)
-        {
-            write(uarth, ptr, 1);
-            sleep(0x80000);
-            ptr = (*ptr == '0' ? sptr+1 : sptr);
-        }   
+        for(int j = 0; j < alloc_sizes[i]; j++)
+            ptr[j] = 'a' + (j % 26);
+    }
 }
