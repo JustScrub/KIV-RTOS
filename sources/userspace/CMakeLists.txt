@@ -34,8 +34,8 @@ FUNCTION(ADD_USERSPACE_EXECUTABLE target_name file_list)
 ENDFUNCTION(ADD_USERSPACE_EXECUTABLE)
 
 # init task - systemovy task, musi byt pritomen
-#ADD_USERSPACE_EXECUTABLE(init_task init_task/main.cpp)
-ADD_USERSPACE_EXECUTABLE(init_task init_task_uart/main.cpp)
+ADD_USERSPACE_EXECUTABLE(init_task init_task/main.cpp)
+#ADD_USERSPACE_EXECUTABLE(init_task init_task_uart/main.cpp)
 
 # volitelne tasky pro ruzne ulohy
 #ADD_USERSPACE_EXECUTABLE(sos_task sos_task/main.cpp)
@@ -44,3 +44,4 @@ ADD_USERSPACE_EXECUTABLE(init_task init_task_uart/main.cpp)
 #ADD_USERSPACE_EXECUTABLE(counter_task counter_task/main.cpp)
 #ADD_USERSPACE_EXECUTABLE(tilt_task tilt_task/main.cpp)
 ADD_USERSPACE_EXECUTABLE(uart_test_task uart_test_task/main.cpp)
+ADD_USERSPACE_EXECUTABLE(blink_task blink_task/main.cpp)
