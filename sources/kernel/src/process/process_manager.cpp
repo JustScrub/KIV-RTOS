@@ -272,15 +272,14 @@ uint32_t CProcess_Manager::Alloc_Frames_To_Current(uint32_t count)
     if (!sPage_Manager.Alloc_Pages(count, pages))
         return Invalid_Handle;
 
-    //sUART0.Write("Allocing frames: ");
-    //sUART0.Write(count);
-    //sUART0.Write("\r\n");
+    #ifdef KER_DEBUG
+        sUART0.Write("Allocing frames: ");
+        sUART0.Write(count);
+        sUART0.Write("\r\n");
+    #endif
 
     // ttbr0 je ulozena i s priznaky, ktere ale nesmi dovnitr map_memory
     uint32_t* pt = reinterpret_cast<uint32_t*>((current->cpu_context.ttbr0 + mem::MemoryVirtualBase) & ~3);
-    //sUART0.Write("TTBR0: ");
-    //sUART0.Write_Hex(current->cpu_context.ttbr0 + mem::MemoryVirtualBase);
-    //sUART0.Write("\r\n");
     for(;count > 0; --count)
     {
         current->heap_frames_phys[i+count-1] = pages[count - 1] - mem::MemoryVirtualBase;
@@ -330,11 +329,13 @@ void CProcess_Manager::Handle_Process_SWI(NSWI_Process_Service svc_idx, uint32_t
             mCurrent_Task_Node->task->sched_counter = 1;
             mCurrent_Task_Node->task->state = NTask_State::Zombie;
             mCurrent_Task_Node->task->exit_code = r0;
-            //sUART0.Write("Terminating process ");
-            //sUART0.Write(mCurrent_Task_Node->task->pid);
-            //sUART0.Write(" with exit code ");
-            //sUART0.Write((unsigned)mCurrent_Task_Node->task->exit_code);
-            //sUART0.Write("\r\n");
+            #ifdef KER_DEBUG
+                sUART0.Write("Terminating process ");
+                sUART0.Write(mCurrent_Task_Node->task->pid);
+                sUART0.Write(" with exit code ");
+                sUART0.Write((unsigned)mCurrent_Task_Node->task->exit_code);
+                sUART0.Write("\r\n");
+            #endif
             Free_Heap_Current();
             Schedule();
             break;

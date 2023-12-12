@@ -44,13 +44,15 @@ void map_memory(uint32_t* target_pt, uint32_t phys, uint32_t virt)
     // zatim nechme vychozi sadu priznaku
     // do budoucna by se urcite hodilo oddelit kodovou stranku (read-only) a datovou stranku (read-write, execute-never)
     
-    //sUART0.Write("Mapping ", 8);
-    //sUART0.Write_Hex(virt);
-    //sUART0.Write(" to ", 4);
-    //sUART0.Write_Hex(phys);
-    //sUART0.Write(" in ", 1);
-    //sUART0.Write_Hex(reinterpret_cast<uint32_t>(target_pt));
-    //sUART0.Write("\r\n", 2);
+    #ifdef KER_DEBUG
+        sUART0.Write("Mapping ", 8);
+        sUART0.Write_Hex(virt);
+        sUART0.Write(" to ", 4);
+        sUART0.Write_Hex(phys);
+        sUART0.Write(" in ", 4);
+        sUART0.Write_Hex(reinterpret_cast<uint32_t>(target_pt));
+        sUART0.Write("\r\n", 2);
+    #endif
     target_pt[PT_Entry(virt)] = (phys & 0xFFF00000)
             | DL1_Flags::Access_Type_Section_Address
             | DL1_Flags::Bufferable
@@ -64,5 +66,12 @@ void map_memory(uint32_t* target_pt, uint32_t phys, uint32_t virt)
 
 void unmap_memory(uint32_t* target_pt, uint32_t virt)
 {
+    #ifdef KER_DEBUG
+        sUART0.Write("Unmapping ", 10);
+        sUART0.Write_Hex(virt);
+        sUART0.Write(" in ", 4);
+        sUART0.Write_Hex(reinterpret_cast<uint32_t>(target_pt));
+        sUART0.Write("\r\n", 2);
+    #endif
     target_pt[PT_Entry(virt)] = 0;
 }
