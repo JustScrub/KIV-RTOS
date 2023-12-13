@@ -5,7 +5,7 @@ namespace
     const char CharConvArr[] = "0123456789ABCDEF";
 }
 
-void itoa(unsigned int input, char* output, unsigned int base)
+int itoa(unsigned int input, char* output, unsigned int base, unsigned int n_of_digits)
 {
 	int i = 0;
 
@@ -16,11 +16,8 @@ void itoa(unsigned int input, char* output, unsigned int base)
 		i++;
 	}
 
-    if (i == 0)
-    {
-        output[i] = CharConvArr[0];
-        i++;
-    }
+	while (i < n_of_digits) 
+        output[i++] = CharConvArr[0]; 
 
 	output[i] = '\0';
 	i--;
@@ -31,6 +28,7 @@ void itoa(unsigned int input, char* output, unsigned int base)
 		output[i - j] = output[j];
 		output[j] = c;
 	}
+	return i;
 }
 
 int atoi(const char* input)
@@ -49,6 +47,80 @@ int atoi(const char* input)
 	}
 
 	return output;
+}
+
+int __slow_pow(int base, int exp)
+{
+	int output = 1;
+
+	for (int i = 0; i < exp; i++)
+		output *= base;
+
+	return output;
+}
+
+// Converts a floating-point/double number to a string. 
+// https://www.geeksforgeeks.org/convert-floating-point-number-string/
+int ftoa(float n, char* res, int afterpoint) 
+{ 
+    // Extract integer part 
+    int ipart = (int)n; 
+ 
+    // Extract floating part 
+    float fpart = n - (float)ipart; 
+ 
+    // convert integer part to string 
+    int i = itoa(ipart, res, 10); 
+ 
+    // check for display option after point 
+    if (afterpoint != 0) { 
+        res[i] = '.'; // add dot 
+ 
+        // Get the value of fraction part upto given no. 
+        // of points after dot. The third parameter 
+        // is needed to handle cases like 233.007 
+        fpart = fpart * (float)__slow_pow(10, afterpoint); 
+ 
+        i += itoa((int)fpart, res + i + 1, 10, afterpoint); 
+    } 
+
+	return i;
+} 
+
+float atof(const char* input)
+{
+	float output = 0.0f;
+	float divider = 0.0f;
+	float sign = 1.0f;
+
+	if (*input == '-')
+	{
+		sign = -1.0f;
+		input++;
+	}
+
+	while (*input != '\0')
+	{
+		if (*input == '.')
+		{
+			divider = 1.0f;
+			input++;
+			continue;
+		}
+
+		output *= 10.0f;
+		if (*input > '9' || *input < '0')
+			break;
+
+		output += *input - '0';
+
+		if (divider > 0.0f)
+			divider *= 10.0f;
+
+		input++;
+	}
+
+	return sign * output / divider;
 }
 
 char* strncpy(char* dest, const char *src, int num)
