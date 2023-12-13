@@ -5,9 +5,21 @@ namespace
     const char CharConvArr[] = "0123456789ABCDEF";
 }
 
-int itoa(unsigned int input, char* output, unsigned int base, unsigned int n_of_digits)
+int itoa(int input, char* output, unsigned int base, unsigned int n_of_digits)
 {
 	int i = 0;
+	if (input == 0)
+	{
+		while (i < n_of_digits + !n_of_digits) 
+			output[i++] = CharConvArr[0]; 
+		return i;
+	}
+
+	if (input < 0)
+	{
+		output[i++] = '-';
+		input = -input;
+	}
 
 	while (input > 0)
 	{
@@ -16,24 +28,32 @@ int itoa(unsigned int input, char* output, unsigned int base, unsigned int n_of_
 		i++;
 	}
 
-	while (i < n_of_digits) 
+	while (i < n_of_digits + (output[0] == '-' ? 1 : 0)) 
         output[i++] = CharConvArr[0]; 
 
 	output[i] = '\0';
 	i--;
+	int j = output[0] == '-' ? 1 : 0;
 
-	for (int j = 0; j <= i/2; j++)
+	for (; j <= i/2; j++)
 	{
 		char c = output[i - j];
 		output[i - j] = output[j];
 		output[j] = c;
 	}
-	return i;
+	return i+1;
 }
 
 int atoi(const char* input)
 {
 	int output = 0;
+	int sign = 1;
+
+	if(*input == '-')
+	{
+		sign = -1;
+		input++;
+	}
 
 	while (*input != '\0')
 	{
@@ -46,7 +66,7 @@ int atoi(const char* input)
 		input++;
 	}
 
-	return output;
+	return sign * output;
 }
 
 int __slow_pow(int base, int exp)
@@ -63,6 +83,14 @@ int __slow_pow(int base, int exp)
 // https://www.geeksforgeeks.org/convert-floating-point-number-string/
 int ftoa(float n, char* res, int afterpoint) 
 { 
+	int i = 0;
+	if(n < 0)
+	{
+		res[0] = '-'; // add minus sign
+		n = -n;
+		i++;
+	}
+
     // Extract integer part 
     int ipart = (int)n; 
  
@@ -70,7 +98,7 @@ int ftoa(float n, char* res, int afterpoint)
     float fpart = n - (float)ipart; 
  
     // convert integer part to string 
-    int i = itoa(ipart, res, 10); 
+    i += itoa(ipart, res+i, 10); 
  
     // check for display option after point 
     if (afterpoint != 0) { 
@@ -81,7 +109,7 @@ int ftoa(float n, char* res, int afterpoint)
         // is needed to handle cases like 233.007 
         fpart = fpart * (float)__slow_pow(10, afterpoint); 
  
-        i += itoa((int)fpart, res + i + 1, 10, afterpoint); 
+        i += itoa((int)fpart, res + i + 1, 10, afterpoint) + 1; 
     } 
 
 	return i;
@@ -90,7 +118,7 @@ int ftoa(float n, char* res, int afterpoint)
 float atof(const char* input)
 {
 	float output = 0.0f;
-	float divider = 0.0f;
+	int divider = 0;
 	float sign = 1.0f;
 
 	if (*input == '-')
@@ -103,7 +131,7 @@ float atof(const char* input)
 	{
 		if (*input == '.')
 		{
-			divider = 1.0f;
+			divider = 1;
 			input++;
 			continue;
 		}
@@ -114,13 +142,14 @@ float atof(const char* input)
 
 		output += *input - '0';
 
-		if (divider > 0.0f)
-			divider *= 10.0f;
+		if (divider)
+			divider *= 10;
 
 		input++;
 	}
 
-	return sign * output / divider;
+	
+	return sign * output / (divider? (float)divider : 1.0f);
 }
 
 char* strncpy(char* dest, const char *src, int num)

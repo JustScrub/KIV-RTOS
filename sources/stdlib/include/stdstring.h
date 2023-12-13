@@ -1,6 +1,6 @@
 #pragma once
 
-int itoa(unsigned int input, char* output, unsigned int base, unsigned int n_of_digits=0);
+int itoa(int input, char* output, unsigned int base, unsigned int n_of_digits=0);
 int atoi(const char* input);
 int ftoa(float n, char* res, int afterpoint=3);
 float atof(const char* input);
