@@ -69,7 +69,7 @@ int atoi(const char* input)
 	return sign * output;
 }
 
-int __slow_pow(int base, int exp)
+inline int __slow_pow(int base, int exp)
 {
 	int output = 1;
 
