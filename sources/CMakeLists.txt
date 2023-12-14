@@ -30,6 +30,11 @@ FILE(GLOB_RECURSE stdutils_src "stdutils/*.cpp" "stdutils/*.c" "stdutils/*.h" "s
 # pridame cil - sestavujeme standardni knihovnu (minimalni)
 ADD_LIBRARY(kivrtos_stdlib STATIC ${stdlib_src} ${stdutils_src})
 
+if( BUILD_STDLIB_ONLY )
+    TARGET_LINK_LIBRARIES(kivrtos_stdlib)
+    return()
+endif()
+
 # pridame cil - sestavujeme jen kernel
 ADD_EXECUTABLE(kernel ${kernel_src})
 

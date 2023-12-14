@@ -86,6 +86,14 @@ _reset:
     msr cpsr_c, r0
 	add sp, r4, #0x4000
 
+	;@ Zapnout VFP na floating point operace
+	mrc p15, 0, r0, c1, c0, 2
+    orr r0, r0, #0x300000
+    orr r0, r0, #0xC00000
+    mcr p15, 0, r0, c1, c0, 2
+    mov r0, #0x40000000
+    fmxr fpexc,r0
+
 	bl _c_startup			;@ C startup kod (inicializace prostredi, nulovani .bss sekce)
 	bl _init_system_memory
 init_hang:
