@@ -5,152 +5,168 @@ namespace
     const char CharConvArr[] = "0123456789ABCDEF";
 }
 
-int itoa(int input, char* output, unsigned int base, unsigned int n_of_digits)
+// Reverses a string 'str' of length 'len'
+inline void reverse(char* str, int len)
 {
-	int i = 0;
-	if (input == 0)
-	{
-		while (i < n_of_digits + !n_of_digits) 
-			output[i++] = CharConvArr[0]; 
-		return i;
-	}
+    int i = 0, j = len - 1, temp;
+    while (i < j) {
+        temp = str[i];
+        str[i] = str[j];
+        str[j] = temp;
+        i++;
+        j--;
+    }
+}
 
-	if (input < 0)
-	{
-		output[i++] = '-';
-		input = -input;
-	}
+int itoa(int input, char* output, unsigned int base, unsigned int n_of_digits=0)
+{
+        int i = 0;
+        if (input == 0)
+        {
+                while (i < n_of_digits + !n_of_digits)
+                        output[i++] = CharConvArr[0];
+                return i;
+        }
 
-	while (input > 0)
-	{
-		output[i] = CharConvArr[input % base];
-		input /= base;
-		i++;
-	}
+        if (input < 0)
+        {
+                output[i++] = '-';
+                input = -input;
+        }
 
-	while (i < n_of_digits + (output[0] == '-' ? 1 : 0)) 
-        output[i++] = CharConvArr[0]; 
+        while (input > 0)
+        {
+                output[i] = CharConvArr[input % base];
+                input /= base;
+                i++;
+        }
 
-	output[i] = '\0';
-	i--;
-	int j = output[0] == '-' ? 1 : 0;
+        while (i < n_of_digits + (output[0] == '-' ? 1 : 0))
+        output[i++] = CharConvArr[0];
 
-	for (; j <= i/2; j++)
-	{
-		char c = output[i - j];
-		output[i - j] = output[j];
-		output[j] = c;
-	}
-	return i+1;
+        output[i] = '\0';
+        int l = output[0] == '-' ? 1 : 0;
+        reverse(output + l, i-l);
+        return i;
 }
 
 int atoi(const char* input)
 {
-	int output = 0;
-	int sign = 1;
+        int output = 0;
+        int sign = 1;
 
-	if(*input == '-')
-	{
-		sign = -1;
-		input++;
-	}
+        if(*input == '-')
+        {
+                sign = -1;
+                input++;
+        }
 
-	while (*input != '\0')
-	{
-		output *= 10;
-		if (*input > '9' || *input < '0')
-			break;
+        while (*input != '\0')
+        {
+                if (*input > '9' || *input < '0')
+                        break;
+                output *= 10;
+                output += *input - '0';
 
-		output += *input - '0';
+                input++;
+        }
 
-		input++;
-	}
-
-	return sign * output;
+        return sign * output;
 }
 
-inline int __slow_pow(int base, int exp)
+int __slow_pow(int base, int exp)
 {
-	int output = 1;
+        int output = 1;
 
-	for (int i = 0; i < exp; i++)
-		output *= base;
+        for (int i = 0; i < exp; i++)
+                output *= base;
 
-	return output;
+        return output;
 }
 
-// Converts a floating-point/double number to a string. 
+// Converts a floating-point/double number to a string.
 // https://www.geeksforgeeks.org/convert-floating-point-number-string/
-int ftoa(float n, char* res, int afterpoint) 
-{ 
-	int i = 0;
-	if(n < 0)
-	{
-		res[0] = '-'; // add minus sign
-		n = -n;
-		i++;
-	}
+int ftoa(float n, char* res, int afterpoint)
+{
+        int i = 0;
+        if(n < 0)
+        {
+                res[0] = '-'; // add minus sign
+                n = -n;
+                i++;
+        }
 
-    // Extract integer part 
-    int ipart = (int)n; 
- 
-    // Extract floating part 
-    float fpart = n - (float)ipart; 
- 
-    // convert integer part to string 
-    i += itoa(ipart, res+i, 10); 
- 
-    // check for display option after point 
-    if (afterpoint != 0) { 
-        res[i] = '.'; // add dot 
- 
-        // Get the value of fraction part upto given no. 
-        // of points after dot. The third parameter 
-        // is needed to handle cases like 233.007 
-        fpart = fpart * (float)__slow_pow(10, afterpoint); 
- 
-        i += itoa((int)fpart, res + i + 1, 10, afterpoint) + 1; 
-    } 
+    // Extract integer part
+    int ipart = (int)n;
 
-	return i;
-} 
+    // Extract floating part
+    float fpart = n - (float)ipart;
+
+    // convert integer part to string
+    i += itoa(ipart, res+i, 10);
+
+    // check for display option after point
+    if (afterpoint != 0) {
+        res[i] = '.'; // add dot
+
+        // Get the value of fraction part upto given no.
+        // of points after dot. The third parameter
+        // is needed to handle cases like 233.007
+        fpart = fpart * (float)__slow_pow(10, afterpoint);
+
+        i += itoa((int)fpart, res + i + 1, 10, afterpoint) + 1;
+    }
+
+        return i;
+}
 
 float atof(const char* input)
 {
-	float output = 0.0f;
-	int divider = 0;
-	float sign = 1.0f;
+        float output = 0.0f;
+        int divider = 0;
+        float sign = 1.0f;
 
-	if (*input == '-')
-	{
-		sign = -1.0f;
-		input++;
-	}
+        if (*input == '-')
+        {
+                sign = -1.0f;
+                input++;
+        }
 
-	while (*input != '\0')
-	{
-		if (*input == '.')
-		{
-			divider = 1;
-			input++;
-			continue;
-		}
+        while (*input != '\0')
+        {
+                if (*input == '.')
+                {
+                        if(divider) break;
+                        divider = 1;
+                        input++;
+                        continue;
+                }
 
-		output *= 10.0f;
-		if (*input > '9' || *input < '0')
-			break;
+                if (*input > '9' || *input < '0')
+                        break;
 
-		output += *input - '0';
+                output *= 10.0f;
+                output += *input - '0';
+                divider *= 10;
 
-		if (divider)
-			divider *= 10;
+                input++;
+        }
 
-		input++;
-	}
 
-	
-	return sign * output / (divider? (float)divider : 1.0f);
+        return sign * output / (divider? (float)divider : 1.0f);
 }
+
+bool is_numeric(const char* input)
+{
+		if (*input == '-')
+				input++;
+		if (*input == '.')
+				input++;
+		if (*input > '9' || *input < '0')
+				return false;
+		return true;
+}
+
 
 char* strncpy(char* dest, const char *src, int num)
 {
