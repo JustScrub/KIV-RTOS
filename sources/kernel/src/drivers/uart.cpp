@@ -29,21 +29,21 @@ bool CUART::Open()
         return false;
     }
 
-    mAUX.Enable(hal::AUX_Peripherals::MiniUART);
-    mAUX.Set_Register(hal::AUX_Reg::MU_IIR, 0);
-    mAUX.Set_Register(hal::AUX_Reg::MU_IER, 0);
-    mAUX.Set_Register(hal::AUX_Reg::MU_MCR, 0);
-    mAUX.Set_Register(hal::AUX_Reg::MU_CNTL, 3); // RX and TX enabled
-
     // nastavime GPIO 14 a 15 na jejich alt funkci 5, coz je UART kanal 1
     sGPIO.Set_GPIO_Function(14, NGPIO_Function::Alt_5);
     sGPIO.Set_GPIO_Function(15, NGPIO_Function::Alt_5);
+
+    mAUX.Enable(hal::AUX_Peripherals::MiniUART);
+    mAUX.Set_Register(hal::AUX_Reg::MU_IIR, 0);
+    mAUX.Set_Register(hal::AUX_Reg::MU_IER, 1); // povolime preruseni pri prijeti znaku
+    mAUX.Set_Register(hal::AUX_Reg::MU_MCR, 0);
+    mAUX.Set_Register(hal::AUX_Reg::MU_CNTL, 3); // RX and TX enabled
 
     mOpened = true;
 
     // nastavime vychozi rychlost a velikost znaku
     Set_Char_Length(NUART_Char_Length::Char_8);
-    Set_Baud_Rate(NUART_Baud_Rate::BR_9600);
+    Set_Baud_Rate(NUART_Baud_Rate::BR_115200);
 
     return true;
 }
@@ -166,4 +166,64 @@ void CUART::Write_Hex(unsigned int num)
 
     itoa(num, buf, 16);
     Write(buf);
+}
+
+bool CUART::Is_IRQ_Pending()
+{
+    if (!mOpened)
+        return false;
+
+    return mAUX.Get_Register(hal::AUX_Reg::MU_IIR) & 1;
+}
+
+void CUART::IRQ_Callback()
+{
+    if (!mOpened)
+        return;
+
+    for(int i = 0; i < UART_IRQ_WAIT; i++)
+    {
+        // TODO: overflow flag - pokud je buffer plny, zahodit znak a nastavit priznak
+        if(mBuffer_Count >= UART_BFR_SIZE)
+            break;
+
+        // dokud ma status registr priznak "vstupni fronta prazdna", nelze cist dalsi bit
+        if (!(mAUX.Get_Register(hal::AUX_Reg::MU_LSR) & (1 << 0)))
+            continue;
+
+        // precteme znak
+        const char c = mAUX.Get_Register(hal::AUX_Reg::MU_IO);
+
+        // ulozime ho do bufferu
+        mBuffer[(mBuffer_Tail + mBuffer_Count)%UART_BFR_SIZE] = c;
+        mBuffer_Count++;
+        i=0;
+    }
+
+    mOwner->Notify(NotifyAll); //vzdy max 1 proces
+}
+
+uint32_t CUART::Read(char *buf, unsigned int len)
+{
+    if (!mOpened)
+        return 0;
+
+    unsigned int i;
+
+    for (i = 0; i < len && mBuffer_Count > 0; i++)
+    {
+        buf[i] = mBuffer[mBuffer_Tail];
+        mBuffer_Tail = (mBuffer_Tail + 1)%UART_BFR_SIZE;
+        mBuffer_Count--;
+    }
+
+    return i;
+}
+
+uint32_t CUART::Get_Bytes_Available()
+{
+    if (!mOpened)
+        return 0;
+
+    return mBuffer_Count;
 }

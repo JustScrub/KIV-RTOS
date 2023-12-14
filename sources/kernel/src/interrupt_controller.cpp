@@ -4,6 +4,7 @@
 #include <interrupt_controller.h>
 #include <drivers/gpio.h>
 #include <drivers/timer.h>
+#include <drivers/uart.h>
 #include <process/process_manager.h>
 #include <process/swi.h>
 
@@ -47,8 +48,12 @@ extern "C" void _internal_irq_handler()
     // GPIO (samo si overi, zda k nejakemu doslo)
     sGPIO.Handle_IRQ();
 
+    // UART
+    if (sUART0.Is_IRQ_Pending())
+        sUART0.IRQ_Callback();
+
     // casovac
-    if (sTimer.Is_Timer_IRQ_Pending())
+    if (sTimer.Is_IRQ_Pending())
         sTimer.IRQ_Callback();
 }
 
@@ -84,7 +89,7 @@ void CInterrupt_Controller::Enable_IRQ(hal::IRQ_Source source_idx)
 {
     const unsigned int idx_base = static_cast<unsigned int>(source_idx);
 
-    Regs(idx_base < 32 ? hal::Interrupt_Controller_Reg::IRQ_Enable_1 : hal::Interrupt_Controller_Reg::IRQ_Enable_1) = (1 << (idx_base % 32));
+    Regs(idx_base < 32 ? hal::Interrupt_Controller_Reg::IRQ_Enable_1 : hal::Interrupt_Controller_Reg::IRQ_Enable_2) = (1 << (idx_base % 32));
 }
 
 void CInterrupt_Controller::Disable_IRQ(hal::IRQ_Source source_idx)

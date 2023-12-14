@@ -5,6 +5,7 @@
 #include <memory/kernel_heap.h>
 #include <fs/filesystem.h>
 #include <stdstring.h>
+#include <process/process_manager.h>
 
 // virtualni UART soubor
 class CUART_File final : public IFile
@@ -27,7 +28,14 @@ class CUART_File final : public IFile
 
         virtual uint32_t Read(char* buffer, uint32_t num) override
         {
-            // NYI, prijde nejspis az s kernel buffery a prerusenimi z UARTu
+            if (num > 0 && buffer != nullptr)
+            {
+                if (mChannel == 0)
+                {
+                    uint32_t read = sUART0.Read(buffer, num);
+                    return read;
+                }
+            }
 
             return 0;
         }
@@ -54,6 +62,8 @@ class CUART_File final : public IFile
             if (mChannel == 0)
                 sUART0.Close();
             mChannel = -1;
+
+            sUART0.mOwner = nullptr;
 
             return IFile::Close();
         }
@@ -84,6 +94,18 @@ class CUART_File final : public IFile
             }
             return false;
         }
+
+        virtual bool Wait(uint32_t count) override
+        {
+            if (sUART0.Get_Bytes_Available() >= count)
+                return false;
+
+            Wait_Enqueue_Current();
+            sProcessMgr.Block_Current_Process();
+            return sUART0.Get_Bytes_Available() < count;
+            // wait syscall vraci NSWI_Result_Code, kde success == 0
+            // ==> vracime negaci vysledku (false, kdyz je dostatek znaku na UARTu)
+        }
 };
 
 class CUART_FS_Driver : public IFilesystem_Driver
@@ -98,6 +120,9 @@ class CUART_FS_Driver : public IFilesystem_Driver
         {
             // jedina slozka path - kanal UARTu
 
+            if (sUART0.mOwner != nullptr)
+                return nullptr;
+
             int channel = atoi(path);
             if (channel != 0) // mame jen jeden kanal
                 return nullptr;
@@ -105,7 +130,9 @@ class CUART_FS_Driver : public IFilesystem_Driver
             if (!sUART0.Open())
                 return nullptr;
 
+
             CUART_File* f = new CUART_File(channel);
+            sUART0.mOwner = f;
 
             return f;
         }
