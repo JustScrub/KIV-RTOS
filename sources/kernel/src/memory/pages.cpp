@@ -49,9 +49,31 @@ uint32_t CPage_Manager::Alloc_Page()
     return 0;
 }
 
+bool CPage_Manager::Alloc_Pages(uint32_t count, uint32_t *pages)
+{
+    int32_t i;
+    for(i = 0; i < count; i++)
+    {
+        pages[i] = Alloc_Page();
+        if (pages[i] == 0)
+            goto fail;
+    }
+
+    return true;
+
+fail:
+    for(; i>=0; --i)
+    {
+        Free_Page(pages[i] - mem::MemoryVirtualBase);
+    }
+
+    return false;
+}
+
+constexpr uint32_t LowMemoryPhys = mem::LowMemory - mem::MemoryVirtualBase;
 void CPage_Manager::Free_Page(uint32_t fa)
 {
     // pro vyssi bezpecnost v nejakych safe systemech lze tady data stranky premazavat napr. nulami po dealokaci
 
-    Mark(fa / mem::PageSize, false);
+    Mark( (fa - LowMemoryPhys) / mem::PageSize, false);
 }

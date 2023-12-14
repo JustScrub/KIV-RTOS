@@ -81,6 +81,8 @@ class CProcess_Manager
 
         // odmapuje soubor z daneho handle
         bool Unmap_File_Current(uint32_t handle);
+        uint32_t Alloc_Frames_To_Current(uint32_t count);
+        bool Free_Heap_Current();
 
         // softwarova preruseni pro process facility
         void Handle_Process_SWI(NSWI_Process_Service svc_idx, uint32_t r0, uint32_t r1, uint32_t r2, TSWI_Result& target);

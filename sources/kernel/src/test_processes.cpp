@@ -6,6 +6,8 @@
 //#include "../../userspace/build/src_tilt_task.h"
 #include "../../userspace/build/src_uart_test_task.h"
 #include "../../userspace/build/src_blink_task.h"
+#include "../../userspace/build/src_heap_test_task.h"
+#include "../../userspace/build/src_heap_test_task_error.h"
 
 #include "../../userspace/build/src_vfp_task.h"
 // az budeme umet cist SD kartu, tento soubor uplne zmizi

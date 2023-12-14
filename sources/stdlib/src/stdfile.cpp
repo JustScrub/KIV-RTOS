@@ -161,6 +161,18 @@ uint32_t get_task_ticks_to_deadline()
     return ticks;
 }
 
+
+void *i_am_once_again_asking_for_your_memory_support(uint32_t amount)
+{
+    uint32_t retval;
+
+    asm volatile("mov r0, %0" : : "r" (amount));
+    asm volatile("swi 6");
+    asm volatile("mov %0, r0" : "=r" (retval));
+
+    return (void*)retval;
+}
+
 const char Pipe_File_Prefix[] = "SYS:pipe/";
 
 uint32_t pipe(const char* name, uint32_t buf_size)

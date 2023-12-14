@@ -44,6 +44,11 @@ extern "C" unsigned int __uart_test_task_len;
 
 extern "C" unsigned char __blink_task[];
 extern "C" unsigned int __blink_task_len;
+extern "C" unsigned char __heap_test_task[];
+extern "C" unsigned int __heap_test_task_len;
+
+extern "C" unsigned char __heap_test_task_error[];
+extern "C" unsigned int __heap_test_task_error_len;
 
 extern "C" int _kernel_main(void)
 {
@@ -63,6 +68,8 @@ extern "C" int _kernel_main(void)
 	//sProcessMgr.Create_Process(__tilt_task, __tilt_task_len, false);
 	sProcessMgr.Create_Process(__uart_test_task, __uart_test_task_len, false);
 	sProcessMgr.Create_Process(__blink_task, __blink_task_len, false);
+	sProcessMgr.Create_Process(__heap_test_task, __heap_test_task_len, false);
+	sProcessMgr.Create_Process(__heap_test_task_error, __heap_test_task_error_len, false);
 
 	// zatim zakazeme IRQ casovace
 	sInterruptCtl.Disable_Basic_IRQ(hal::IRQ_Basic_Source::Timer);

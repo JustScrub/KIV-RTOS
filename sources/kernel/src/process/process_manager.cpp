@@ -152,6 +152,9 @@ uint32_t CProcess_Manager::Create_Process(unsigned char* elf_file_data, unsigned
     for (uint32_t i = 0; i < Max_Process_Opened_Files; i++)
         task->opened_files[i] = nullptr;
 
+    for (uint32_t i = 0; i < Task_Max_Heap_Pages; i++)
+        task->heap_frames_phys[i] = 0;
+
     return task->pid;
 }
 
@@ -248,6 +251,69 @@ bool CProcess_Manager::Unmap_File_Current(uint32_t handle)
     return true;
 }
 
+uint32_t CProcess_Manager::Alloc_Frames_To_Current(uint32_t count)
+{
+    TTask_Struct* current = Get_Current_Process();
+    if (!current || count == 0)
+        return Invalid_Handle;
+
+    // najdeme volny slot, pokud tam je (sloty za nim jsou take volne)
+    int i;
+    for (i = 0; i < Task_Max_Heap_Pages; i++)
+    {
+        if (current->heap_frames_phys[i] == 0)
+            break;
+    }
+    if(i + count > Task_Max_Heap_Pages)
+        return Invalid_Handle;
+
+    uint32_t pages[Task_Max_Heap_Pages]; // mohli bychom pouzit i C99 VLA, ale ty C++ negarantuje :(
+                                         // chovani je ale aspon konzistentni - vzdy se alokuje na stacku stejne velky blok
+    if (!sPage_Manager.Alloc_Pages(count, pages))
+        return Invalid_Handle;
+
+    #ifdef KER_DEBUG
+        sUART0.Write("Allocing frames: ");
+        sUART0.Write(count);
+        sUART0.Write("\r\n");
+    #endif
+
+    // ttbr0 je ulozena i s priznaky, ktere ale nesmi dovnitr map_memory
+    uint32_t* pt = reinterpret_cast<uint32_t*>((current->cpu_context.ttbr0 + mem::MemoryVirtualBase) & ~3);
+    for(;count > 0; --count)
+    {
+        current->heap_frames_phys[i+count-1] = pages[count - 1] - mem::MemoryVirtualBase;
+        // namapujeme stranku do adresniho prostoru procesu
+        map_memory(pt, current->heap_frames_phys[i+count-1], Task_Heap_Start + (i+count-1) * mem::PageSize);
+        //sUART0.Write("Frame mapped\r\n");
+    }
+
+    return Task_Heap_Start + i * mem::PageSize;
+}
+
+bool CProcess_Manager::Free_Heap_Current()
+{
+    TTask_Struct* current = Get_Current_Process();
+    if (!current)
+        return false;
+
+    // ttbr0 je ulozena i s priznaky, ktere ale nesmi dovnitr unmap_memory
+    uint32_t* pt = reinterpret_cast<uint32_t*>((current->cpu_context.ttbr0 + mem::MemoryVirtualBase) & ~3);
+
+    // projdeme vsechny alokovane stranky a uvolnime je
+    for (int i = 0; i < Task_Max_Heap_Pages; i++)
+    {
+        if (current->heap_frames_phys[i] != 0)
+        {
+            unmap_memory(pt, Task_Heap_Start + i * mem::PageSize);
+            sPage_Manager.Free_Page(current->heap_frames_phys[i]);
+            current->heap_frames_phys[i] = 0;
+        }
+    }
+
+    return true;
+}
+
 void CProcess_Manager::Handle_Process_SWI(NSWI_Process_Service svc_idx, uint32_t r0, uint32_t r1, uint32_t r2, TSWI_Result& target)
 {
     // TODO: signalizace chyby
@@ -263,6 +329,14 @@ void CProcess_Manager::Handle_Process_SWI(NSWI_Process_Service svc_idx, uint32_t
             mCurrent_Task_Node->task->sched_counter = 1;
             mCurrent_Task_Node->task->state = NTask_State::Zombie;
             mCurrent_Task_Node->task->exit_code = r0;
+            #ifdef KER_DEBUG
+                sUART0.Write("Terminating process ");
+                sUART0.Write(mCurrent_Task_Node->task->pid);
+                sUART0.Write(" with exit code ");
+                sUART0.Write((unsigned)mCurrent_Task_Node->task->exit_code);
+                sUART0.Write("\r\n");
+            #endif
+            Free_Heap_Current();
             Schedule();
             break;
         case NSWI_Process_Service::Yield:
@@ -295,6 +369,12 @@ void CProcess_Manager::Handle_Process_SWI(NSWI_Process_Service svc_idx, uint32_t
             }
             break;
         }
+
+        case NSWI_Process_Service::Gib_Frame:
+            target.r0 = Alloc_Frames_To_Current(r0);
+            if (target.r0 == Invalid_Handle)
+                target.r0 = 0;
+            break;
     }
 }
 
