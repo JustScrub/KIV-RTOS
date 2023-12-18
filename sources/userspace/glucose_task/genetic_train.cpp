@@ -2,13 +2,17 @@
 #include "glukose_pred.cpp"
 #include <stdstring.h>
 
-#define nullptr (void*)0
 typedef params chromo;
 
 /**
  * @brief function to return a random float
  */
-extern float randfloat(void);
+extern float randfloat(float min, float max);
+extern float rand_min, rand_max;
+float randfloat()
+{
+    return randfloat(rand_min, rand_max);
+}
 
 void popul_init(chromo *mem, int n)
 {
@@ -98,16 +102,16 @@ void popul_select(chromo *mem, float *costs, int n, int keep, int breed)
 {
     // sort the chromosomes by cost
     popul_heapsort(mem, costs, n);
-    // breed the best chromosomes
-    for(int i=keep;i<n;++i)
+    // breed the best chromosomes 
+    for(int i=n-1; i>=keep; ++i)
     {
-        unsigned a = (unsigned)randfloat() % (breed);
+        unsigned a = (unsigned)randfloat(0.0, 4294967295.0) % (breed); // range of unsigned
         mem[i] = (chromo){
-            .A = (mem[a].A + mem[i].A)/2.0,
-            .B = (mem[a].B + mem[i].B)/2.0,
-            .C = (mem[a].C + mem[i].C)/2.0,
-            .D = (mem[a].D + mem[i].D)/2.0,
-            .E = (mem[a].E + mem[i].E)/2.0,
+            .A = (mem[a].A + mem[i].A)/2.0f,
+            .B = (mem[a].B + mem[i].B)/2.0f,
+            .C = (mem[a].C + mem[i].C)/2.0f,
+            .D = (mem[a].D + mem[i].D)/2.0f,
+            .E = (mem[a].E + mem[i].E)/2.0f,
         };
     }
 }

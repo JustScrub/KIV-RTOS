@@ -18,7 +18,7 @@ inline void reverse(char* str, int len)
     }
 }
 
-int itoa(int input, char* output, unsigned int base, unsigned int n_of_digits=0)
+int itoa(int input, char* output, unsigned int base, unsigned int n_of_digits)
 {
         int i = 0;
         if (input == 0)
@@ -158,13 +158,13 @@ float atof(const char* input)
 
 bool is_numeric(const char* input)
 {
-		if (*input == '-')
-				input++;
-		if (*input == '.')
-				input++;
-		if (*input > '9' || *input < '0')
-				return false;
-		return true;
+    if (*input == '-')
+        input++;
+    if (*input == '.')
+        input++;
+    if (*input > '9' || *input < '0')
+        return false;
+    return true;
 }
 
 

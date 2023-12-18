@@ -5,6 +5,19 @@
 #include <drivers/bridges/uart_defs.h>
 
 int uart_fd = -1;
+
+bool open_uart(NUART_Baud_Rate rate = NUART_Baud_Rate::BR_115200, NUART_Char_Length char_len = NUART_Char_Length::Char_8)
+{
+    uart_fd = open("DEV:uart/0", NFile_Open_Mode::Read_Write);
+
+    TUART_IOCtl_Params params;
+    params.baud_rate = rate;
+    params.char_length = char_len;
+    ioctl(uart_fd, NIOCtl_Operation::Set_Params, &params);
+
+    return uart_fd >= 0;
+}
+
 void printf(const char* string)
 {
     write(uart_fd, string, strlen(string));
@@ -54,4 +67,17 @@ int bscanf(char *bfr, uint32_t min_size=1)
 {
     while(wait(uart_fd,min_size)==NSWI_Result_Code::Fail) ;
     return scanf(bfr, min_size);
+}
+
+void get_numeric_input(char *bfr, uint32_t bfr_size)
+{
+    while(1)
+    {
+        bzero(bfr, bfr_size);
+        bscanf(bfr);
+
+        if(is_numeric(bfr))
+            return;
+        printf("invalid input -- must be number\n");
+    }
 }
