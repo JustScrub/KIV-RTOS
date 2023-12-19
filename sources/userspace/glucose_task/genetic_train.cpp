@@ -5,37 +5,33 @@
 typedef params chromo;
 
 /**
- * @brief function to return a random float
+ * @brief function to return a random float between 1 and 0
  */
-extern float randfloat(float min, float max);
-extern float rand_min, rand_max;
-float randfloat()
+extern float randfloat();
+float randfloat(float min, float max)
 {
-    return randfloat(rand_min, rand_max);
+    return min + randfloat() * (max - min);
 }
 
 void popul_init(chromo *mem, int n)
 {
-    mem += n;
-    while(n)
+    while(n-->0)
     {
-        *mem = (chromo){
+        mem[n] = (chromo){
             .A = randfloat(),
             .B = randfloat(),
             .C = randfloat(),
             .D = randfloat(),
             .E = randfloat(),
         };
-        mem--;
     }
 }
 
 void popul_eval(chromo *mem, float *costs, int n)
 {
-    while(n)
+    while(n-->0)
     {
-        costs[n-1] = cost(mem+n-1);
-        n--;
+        costs[n] = cost(mem+n);
     }
 }
 
@@ -90,7 +86,7 @@ void popul_heapsort(chromo *mem, float *costs, int n)
 }
 
 /**
- * @brief selects chromosomes for new population
+ * @brief selects chromosomes for new population and crossbreeds them
  * 
  * @param mem all chromosomes
  * @param costs the costs of the chromosomes
@@ -103,9 +99,9 @@ void popul_select(chromo *mem, float *costs, int n, int keep, int breed)
     // sort the chromosomes by cost
     popul_heapsort(mem, costs, n);
     // breed the best chromosomes 
-    for(int i=n-1; i>=keep; ++i)
+    for(int i=n-1; i>=keep; --i)
     {
-        unsigned a = (unsigned)randfloat(0.0, 4294967295.0) % (breed); // range of unsigned
+        unsigned a = (unsigned)randfloat(0.0f, 4294967295.0f) % (breed); // range of unsigned
         mem[i] = (chromo){
             .A = (mem[a].A + mem[i].A)/2.0f,
             .B = (mem[a].B + mem[i].B)/2.0f,
@@ -123,29 +119,29 @@ void popul_select(chromo *mem, float *costs, int n, int keep, int breed)
  * @param n number of chromosomes
  * @param rate mutation rate
  */
-void popul_mutate(chromo *mem, int n, float rate)
+void popul_mutate(chromo *mem, int n, float rate, float perc_change=0.1f)
 {
     for(int i=0;i<n;++i)
     {
         if(randfloat() < rate)
         {
-            mem[i].A = randfloat();
+            mem[i].A *= 1.0f + randfloat(-perc_change, perc_change);
         }
         if(randfloat() < rate)
         {
-            mem[i].B = randfloat();
+            mem[i].B *= 1.0f + randfloat(-perc_change, perc_change);
         }
         if(randfloat() < rate)
         {
-            mem[i].C = randfloat();
+            mem[i].C *= 1.0f + randfloat(-perc_change, perc_change);
         }
         if(randfloat() < rate)
         {
-            mem[i].D = randfloat();
+            mem[i].D *= 1.0f + randfloat(-perc_change, perc_change);
         }
         if(randfloat() < rate)
         {
-            mem[i].E = randfloat();
+            mem[i].E *= 1.0f + randfloat(-perc_change, perc_change);
         }
     }
 }
@@ -182,7 +178,7 @@ int popul_best(chromo *mem, float *costs, int n)
  * @param min_cost minimum cost
  * @return int 1 if the best chromosome is good enough or if the number of generations is too high
  */
-int popul_stop(chromo *mem, float *costs, int n, int gen, int max_gen, float min_cost)
+bool popul_stop(chromo *mem, float *costs, int n, int gen, int max_gen, float min_cost)
 {
     return (costs[popul_best(mem, costs, n)] < min_cost) || (gen >= max_gen);
 }

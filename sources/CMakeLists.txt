@@ -17,6 +17,7 @@ INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/stdutils/include/")
 # budeme vyvijet jen pro RPi0, takze tady proste natvrdo napiseme cesty k hlavickam a pridame define
 INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/kernel/include/board/rpi0/")
 ADD_DEFINITIONS(-DRPI0)
+ADD_DEFINITIONS(-DKER_DEBUG)
 
 # rekurzivne pridame vsechny zdrojaky z kernel podslozky
 FILE(GLOB_RECURSE kernel_src "kernel/*.cpp" "kernel/*.c" "kernel/*.h" "kernel/*.hpp" "kernel/*.s")

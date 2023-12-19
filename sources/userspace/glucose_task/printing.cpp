@@ -24,6 +24,14 @@ void printf(const char* string)
     write(uart_fd, "\r\n", 2);
 }
 
+void printfloat(float b)
+{
+    char buffer[20];
+    int len = ftoa(b, buffer, 3);
+    write(uart_fd, buffer, len);
+    write(uart_fd, "\r\n", 2);
+}
+
 void print_params(params *p)
 {
     char bfr[32];

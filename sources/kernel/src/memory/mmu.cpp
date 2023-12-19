@@ -1,6 +1,10 @@
 #include <hal/peripherals.h>
 #include <memory/mmu.h>
 
+#ifdef KER_DEBUG
+    #include <drivers/uart.h>
+#endif
+
 extern volatile __attribute__((section(".initsys.data"))) uint32_t Page_Directory_Kernel[PT_Size];
 
 uint32_t* const Page_Directory_Kernel_High = reinterpret_cast<uint32_t*>(_virt_data_start + reinterpret_cast<uint32_t>(&Page_Directory_Kernel));

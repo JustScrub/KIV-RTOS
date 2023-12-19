@@ -22,33 +22,8 @@ extern "C" void Timer_Callback()
 extern "C" unsigned char __init_task[];
 extern "C" unsigned int __init_task_len;
 
-extern "C" unsigned char __vfp_task[];
-extern "C" unsigned int __vfp_task_len;
-//extern "C" unsigned char __sos_task[];
-//extern "C" unsigned int __sos_task_len;
-//
-//extern "C" unsigned char __oled_task[];
-//extern "C" unsigned int __oled_task_len;
-//
-//extern "C" unsigned char __logger_task[];
-//extern "C" unsigned int __logger_task_len;
-//
-//extern "C" unsigned char __counter_task[];
-//extern "C" unsigned int __counter_task_len;
-//
-//extern "C" unsigned char __tilt_task[];
-//extern "C" unsigned int __tilt_task_len;
-
-extern "C" unsigned char __uart_test_task[];
-extern "C" unsigned int __uart_test_task_len;
-
-extern "C" unsigned char __blink_task[];
-extern "C" unsigned int __blink_task_len;
-extern "C" unsigned char __heap_test_task[];
-extern "C" unsigned int __heap_test_task_len;
-
-extern "C" unsigned char __heap_test_task_error[];
-extern "C" unsigned int __heap_test_task_error_len;
+extern "C" unsigned char __glucose_task[];
+extern "C" unsigned int __glucose_task_len;
 
 extern "C" int _kernel_main(void)
 {
@@ -60,16 +35,7 @@ extern "C" int _kernel_main(void)
 
 	// vytvoreni vsech tasku
 	// TODO: presunuti do init procesu a nejake inicializacni sekce
-	sProcessMgr.Create_Process(__vfp_task, __vfp_task_len, true);
-	//sProcessMgr.Create_Process(__sos_task, __sos_task_len, false);
-	//sProcessMgr.Create_Process(__oled_task, __oled_task_len, false);
-	//sProcessMgr.Create_Process(__logger_task, __logger_task_len, false);
-	//sProcessMgr.Create_Process(__counter_task, __counter_task_len, false);
-	//sProcessMgr.Create_Process(__tilt_task, __tilt_task_len, false);
-	sProcessMgr.Create_Process(__uart_test_task, __uart_test_task_len, false);
-	sProcessMgr.Create_Process(__blink_task, __blink_task_len, false);
-	sProcessMgr.Create_Process(__heap_test_task, __heap_test_task_len, false);
-	sProcessMgr.Create_Process(__heap_test_task_error, __heap_test_task_error_len, false);
+	sProcessMgr.Create_Process(__glucose_task, __glucose_task_len, false);
 
 	// zatim zakazeme IRQ casovace
 	sInterruptCtl.Disable_Basic_IRQ(hal::IRQ_Basic_Source::Timer);
