@@ -173,7 +173,7 @@ bool CUART::Is_IRQ_Pending()
     if (!mOpened)
         return false;
 
-    return mAUX.Get_Register(hal::AUX_Reg::MU_IIR) & 1;
+    return (0 == mAUX.Get_Register(hal::AUX_Reg::MU_IIR) & 1);
 }
 
 void CUART::IRQ_Callback()
