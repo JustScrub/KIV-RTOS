@@ -1,28 +1,22 @@
 #pragma once
 #include "glukose_pred.cpp"
+#include "random.cpp"
 #include <stdstring.h>
+#define GEN_CROSS_PROPORTIONAL 0
+constexpr float GEN_INIT_RANGE = 250.f;
 
 typedef params chromo;
 
-/**
- * @brief function to return a random float between 1 and 0
- */
-extern float randfloat();
-float randfloat(float min, float max)
-{
-    return min + randfloat() * (max - min);
-}
-
-void popul_init(chromo *mem, int n)
+void popul_init(chromo *mem, int n, float range=GEN_INIT_RANGE)
 {
     while(n-->0)
     {
         mem[n] = (chromo){
-            .A = randfloat(),
-            .B = randfloat(),
-            .C = randfloat(),
-            .D = randfloat(),
-            .E = randfloat(),
+            .A = frand(-range, range),
+            .B = frand(-range, range),
+            .C = frand(-range, range),
+            .D = frand(-range, range),
+            .E = frand(-range, range),
         };
     }
 }
@@ -35,15 +29,15 @@ void popul_eval(chromo *mem, float *costs, int n)
     }
 }
 
-void swap(void *a, void *b, int sizeof_elm)
+template <typename T>
+void swap(T *a, T *b)
 {
-    char tmp[sizeof_elm];
-    memcpy(a, tmp, sizeof_elm);
-    memcpy(b, a, sizeof_elm);
-    memcpy(tmp, b, sizeof_elm);
+    T tmp = *a;
+    *a = *b;
+    *b = tmp;
 }
-
-void popul_heapify(chromo *mem, float *costs, int n, int root)
+/*
+inline void popul_heapify(chromo *mem, float *costs, int n, int root)
 {
     //non-recursively heapify
     while(1)
@@ -63,13 +57,13 @@ void popul_heapify(chromo *mem, float *costs, int n, int root)
         {
             break;
         }
-        swap(costs+root, costs+largest, sizeof(float));
-        swap(mem+root, mem+largest, sizeof(chromo));
+        swap(costs+root, costs+largest);
+        swap(mem+root, mem+largest);
         root = largest;
     }
 }
 
-void popul_heapsort(chromo *mem, float *costs, int n)
+inline void popul_heapsort(chromo *mem, float *costs, int n)
 {
     //build heap
     for(int i=n/2-1;i>=0;--i)
@@ -79,9 +73,47 @@ void popul_heapsort(chromo *mem, float *costs, int n)
     //sort
     for(int i=n-1;i>=0;--i)
     {
-        swap(costs, costs+i, sizeof(float));
-        swap(mem, mem+i, sizeof(chromo));
+        swap(costs, costs+i);
+        swap(mem, mem+i);
         popul_heapify(mem, costs, i, 0);
+    }
+}
+*/
+
+int popul_qsel_partition(chromo *mem, float *costs, int l, int r)
+{
+    int pivot = l;
+    for(int i=l+1;i<r;++i)
+    {
+        if(costs[i] < costs[l])
+        {
+            swap(costs+i, costs+pivot+1);
+            swap(mem+i, mem+pivot+1);
+            ++pivot;
+        }
+    }
+    swap(costs+l, costs+pivot);
+    swap(mem+l, mem+pivot);
+    return pivot;
+}
+
+void popul_qsel(chromo *mem, float *costs, int l, int r, int k)
+{ // quickselect non-recursively
+    while(1)
+    {
+        int pivot = popul_qsel_partition(mem, costs, l, r);
+        if(pivot == k)
+        {
+            return;
+        }
+        else if(pivot > k)
+        {
+            r = pivot;
+        }
+        else
+        {
+            l = pivot+1;
+        }
     }
 }
 
@@ -92,26 +124,39 @@ void popul_heapsort(chromo *mem, float *costs, int n)
  * @param costs the costs of the chromosomes
  * @param n number of chromosomes
  * @param keep number of best chromosomes to keep unchanged (elite)
- * @param breed number of chromosomes to breed (crossover)
  */
-void popul_select(chromo *mem, float *costs, int n, int keep, int breed)
+void popul_select(chromo *mem, float *costs, int n, int keep)
 {
-    // sort the chromosomes by cost
-    popul_heapsort(mem, costs, n);
+    //popul_heapsort(mem, costs, n);
+    popul_qsel(mem, costs, 0, n, keep);
     // breed the best chromosomes 
     for(int i=n-1; i>=keep; --i)
     {
-        unsigned a = (unsigned)randfloat(0.0f, 4294967295.0f) % (breed); // range of unsigned
-        mem[i] = (chromo){
-            .A = (mem[a].A + mem[i].A)/2.0f,
-            .B = (mem[a].B + mem[i].B)/2.0f,
-            .C = (mem[a].C + mem[i].C)/2.0f,
-            .D = (mem[a].D + mem[i].D)/2.0f,
-            .E = (mem[a].E + mem[i].E)/2.0f,
-        };
+        unsigned a = urand() % (n); // range of unsigned
+        #if GEN_CROSS_PROPORTIONAL
+            float ca = costs[a];
+            float ci = costs[i];
+            float c = 1.f/(ci + ca);
+            mem[i] = (chromo){
+                .A = (ci*mem[a].A + ca*mem[i].A)*c,
+                .B = (ci*mem[a].B + ca*mem[i].B)*c,
+                .C = (ci*mem[a].C + ca*mem[i].C)*c,
+                .D = (ci*mem[a].D + ca*mem[i].D)*c,
+                .E = (ci*mem[a].E + ca*mem[i].E)*c,
+            };
+        #else
+            mem[i] = (chromo){
+                .A = (mem[a].A + mem[i].A)*0.5f,
+                .B = (mem[a].B + mem[i].B)*0.5f,
+                .C = (mem[a].C + mem[i].C)*0.5f,
+                .D = (mem[a].D + mem[i].D)*0.5f,
+                .E = (mem[a].E + mem[i].E)*0.5f,
+            };
+        #endif
     }
 }
 
+#include "printing.cpp"
 /**
  * @brief mutates chromosomes
  * 
@@ -119,29 +164,30 @@ void popul_select(chromo *mem, float *costs, int n, int keep, int breed)
  * @param n number of chromosomes
  * @param rate mutation rate
  */
-void popul_mutate(chromo *mem, int n, float rate, float perc_change=0.1f)
+void popul_mutate(chromo *mem, int n, unsigned rate, float perc_change=0.1f)
 {
     for(int i=0;i<n;++i)
     {
-        if(randfloat() < rate)
+        float ch = 1.0f + frand(-perc_change, perc_change);
+        if(urand() < rate)
         {
-            mem[i].A *= 1.0f + randfloat(-perc_change, perc_change);
+            mem[i].A *= ch;
         }
-        if(randfloat() < rate)
+        if(urand() < rate)
         {
-            mem[i].B *= 1.0f + randfloat(-perc_change, perc_change);
+            mem[i].B *= ch;
         }
-        if(randfloat() < rate)
+        if(urand() < rate)
         {
-            mem[i].C *= 1.0f + randfloat(-perc_change, perc_change);
+            mem[i].C *= ch;
         }
-        if(randfloat() < rate)
+        if(urand() < rate)
         {
-            mem[i].D *= 1.0f + randfloat(-perc_change, perc_change);
+            mem[i].D *= ch;
         }
-        if(randfloat() < rate)
+        if(urand() < rate)
         {
-            mem[i].E *= 1.0f + randfloat(-perc_change, perc_change);
+            mem[i].E *= ch;
         }
     }
 }

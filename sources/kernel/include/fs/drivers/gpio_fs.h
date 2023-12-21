@@ -110,7 +110,12 @@ class CGPIO_FS_Driver : public IFilesystem_Driver
                 return nullptr;
 
             // tento driver ocekava na vstupu jen jednu jedinou uroven v 'path', a tou je cislo, tedy index GPIO pinu
-
+            #ifdef KER_DEBUG
+                sUART0.Write("GPIO: ");
+                sUART0.Write(path);
+                sUART0.Write("\r\n");
+            #endif
+            
             int gpionum = atoi(path);
             if (gpionum < 0 || gpionum >= hal::GPIO_Pin_Count)
                 return nullptr;

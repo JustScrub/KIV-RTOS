@@ -5,6 +5,7 @@
 #include "process.h"
 #include "swi.h"
 #include <fs/filesystem.h>
+#include <drivers/uart.h>
 
 // neplatny handle (procesu, souboru, ...)
 constexpr uint32_t Invalid_Handle = static_cast<uint32_t>(-1);

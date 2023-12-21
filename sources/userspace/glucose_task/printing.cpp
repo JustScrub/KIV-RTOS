@@ -32,6 +32,14 @@ void printfloat(float b)
     write(uart_fd, "\r\n", 2);
 }
 
+void printint(int b)
+{
+    char buffer[20];
+    int len = itoa(b, buffer,10);
+    write(uart_fd, buffer, len);
+    write(uart_fd, "\r\n", 2);
+}
+
 void print_params(params *p)
 {
     char bfr[32];
@@ -52,7 +60,7 @@ void print_params(params *p)
     write(uart_fd, bfr, strlen(bfr));
 
     write(uart_fd, "; E=", 4);
-    ftoa(p->E, bfr, 4);
+    ftoa(1.0f/p->E, bfr, 4);
     write(uart_fd, bfr, strlen(bfr));
 
     write(uart_fd, "\r\n", 2);

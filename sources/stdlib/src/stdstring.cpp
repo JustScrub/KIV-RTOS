@@ -25,6 +25,7 @@ int itoa(int input, char* output, unsigned int base, unsigned int n_of_digits)
         {
                 while (i < n_of_digits + !n_of_digits)
                         output[i++] = CharConvArr[0];
+                output[i] = '\0';
                 return i;
         }
 
@@ -41,11 +42,11 @@ int itoa(int input, char* output, unsigned int base, unsigned int n_of_digits)
                 i++;
         }
 
-        while (i < n_of_digits + (output[0] == '-' ? 1 : 0))
+        int l = output[0] == '-' ? 1 : 0;
+        while (i < n_of_digits + l)
         output[i++] = CharConvArr[0];
 
         output[i] = '\0';
-        int l = output[0] == '-' ? 1 : 0;
         reverse(output + l, i-l);
         return i;
 }

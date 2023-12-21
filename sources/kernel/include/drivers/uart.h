@@ -4,6 +4,7 @@
 #include <drivers/bcm_aux.h>
 #include <drivers/bridges/uart_defs.h>
 #include <fs/filesystem.h>
+#define KER_DEBUG
 
 constexpr int UART_BFR_SIZE=256;
 constexpr int UART_IRQ_WAIT=0x80000;

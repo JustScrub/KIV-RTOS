@@ -1,4 +1,5 @@
 #pragma once
+#define GLPRED_REGULATION 0
 constexpr unsigned GLUCOSE_N_DATA = 0x100000 / sizeof(float); // 1MB
 
 
@@ -9,8 +10,10 @@ typedef struct {
 
 float *Y;
 int t_curr = 0; // how many user inputs have we received so far
-int t_pred, t_delta, t_offset; // prediction time, time delta, offset=t_pred/t_delta
+int t_pred, t_delta, t_offset; // prediction time, time delta, offset= t_pred/t_delta
+#if GLPRED_REGULATION
 float lambda=0.f;
+#endif
 
 bool add_data(float datum)
 {
@@ -21,25 +24,32 @@ bool add_data(float datum)
     return true;
 }
 
-float b(int t, params *p) {
-    return p->D/p->E * 1440.f*(Y[t] - Y[t-1])/t_delta + 1/p->E * Y[t];
+#define abs(x) ((x) > 0.f ? (x) : -(x))
+
+inline float pred(int t, params p) {
+    float y = Y[t];
+    float b = (p.D *(y - Y[t-1]) + y)*p.E;  // this should be /p.E !! but since it's a parameter, it will adapt
+    return (p.A + p.B * (b - y))*b + p.C;
 }
 
-float pred(int t, params *p) {
-    return p->A * b(t,p) + p->B * b(t,p) * (b(t,p) - Y[t]) + p->C;
+inline float err(int t, params p) {
+    float y = Y[t];
+    float b = (p.D *(y - Y[t-1]) + y)*p.E;
+    return (p.A + p.B * (b - y))*b + p.C - y;
 }
 
-float cost(params *p){
-    // the least squares cost of pred(t) and Y[t]
+inline float cost(params *p){
+    // MAE -- not divided by number of train samples!
     float sum = 0.f, tmp;
-    // the least square sum
-    for(int t = t_offset;t<t_curr;++t)  //t_curr points after the last element
+    params pd = *p;
+    for(int t = t_offset+1;t<t_curr;++t)  //t_curr points after the last element
     {
-         tmp = (pred(t-t_offset,p) - Y[t]);
-         sum += tmp*tmp;
+        tmp = err(t, pd);
+        sum += abs(tmp);
     }
-    // the regularization term (do not regularize C - absolute term)
-    sum += lambda * (p->A * p->A + p->B * p->B + p->D * p->D + p->E * p->E);
-    sum /= (2.f*(t_curr-t_offset));
+    #if GLPRED_REGULATION
+        // the regularization term (do not regularize C - absolute term)
+        sum += lambda * (abs(pd.A) + abs(pd.B) + abs(pd.D) + abs(pd.E));
+    #endif
     return sum;
 }

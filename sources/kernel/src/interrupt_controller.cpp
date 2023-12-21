@@ -50,11 +50,17 @@ extern "C" void _internal_irq_handler()
 
     // UART
     if (sUART0.Is_IRQ_Pending())
+    {
+        //sUART0.Write("UART IRQ\r\n");
         sUART0.IRQ_Callback();
+    }
 
     // casovac
     if (sTimer.Is_IRQ_Pending())
+    {
+        //sUART0.Write("Timer IRQ\r\n");
         sTimer.IRQ_Callback();
+    }
 }
 
 extern "C" void __attribute__((interrupt("FIQ"))) fast_interrupt_handler()

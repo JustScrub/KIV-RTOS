@@ -1,9 +1,7 @@
 #include <hal/peripherals.h>
 #include <memory/mmu.h>
 
-#ifdef KER_DEBUG
-    #include <drivers/uart.h>
-#endif
+#include <drivers/uart.h>
 
 extern volatile __attribute__((section(".initsys.data"))) uint32_t Page_Directory_Kernel[PT_Size];
 
