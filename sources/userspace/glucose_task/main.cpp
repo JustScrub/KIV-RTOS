@@ -89,13 +89,13 @@ bool comp_step(chromo *mem, float *costs, params *p, float *result)
 
     write(uart_fd, "received: ", 10);
     printfloat(datum);
-    printf("Training...");
 
     if(!add_data(datum))
         return false;
     if(t_curr - t_offset <= 1)   // 1 because of backward difference
         return false;
     gen = 0; // reset the generation counter
+    printf("Training...");
     
     // update the population
     popul_init(mem, CHROMO_NUM);
@@ -129,6 +129,12 @@ int main()
     float *costs = (float *)malloc(sizeof(float)*CHROMO_NUM);
     Y = (float *)malloc(sizeof(float)*GLUCOSE_N_DATA);
     params p = {0}; float result;
+
+    for (size_t i = 0; i < 50; i++)
+    {
+        Y[i] = i*10.f;
+    }
+    t_curr = 50;
 
     open_uart();
     printf("Glucose Evolution 1.0");

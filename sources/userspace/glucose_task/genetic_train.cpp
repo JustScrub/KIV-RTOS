@@ -7,16 +7,16 @@ constexpr float GEN_INIT_RANGE = 250.f;
 
 typedef params chromo;
 
-void popul_init(chromo *mem, int n, float range=GEN_INIT_RANGE)
+void popul_init(chromo *mem, int n)
 {
     while(n-->0)
     {
         mem[n] = (chromo){
-            .A = frand(-range, range),
-            .B = frand(-range, range),
-            .C = frand(-range, range),
-            .D = frand(-range, range),
-            .E = frand(-range, range),
+            .A = frand(-GEN_INIT_RANGE, GEN_INIT_RANGE),
+            .B = frand(-GEN_INIT_RANGE, GEN_INIT_RANGE),
+            .C = frand(-GEN_INIT_RANGE, GEN_INIT_RANGE),
+            .D = frand(-GEN_INIT_RANGE, GEN_INIT_RANGE),
+            .E = frand(-GEN_INIT_RANGE, GEN_INIT_RANGE),
         };
     }
 }
@@ -168,26 +168,28 @@ void popul_mutate(chromo *mem, int n, unsigned rate, float perc_change=0.1f)
 {
     for(int i=0;i<n;++i)
     {
-        float ch = 1.0f + frand(-perc_change, perc_change);
+        float q = frand(-perc_change, perc_change);
+        float c = frand(-GEN_INIT_RANGE, GEN_INIT_RANGE);
+
         if(urand() < rate)
         {
-            mem[i].A *= ch;
+            mem[i].A += q*(mem[i].A + c);
         }
         if(urand() < rate)
         {
-            mem[i].B *= ch;
+            mem[i].B += q*(mem[i].B + c);
         }
         if(urand() < rate)
         {
-            mem[i].C *= ch;
+            mem[i].C += q*(mem[i].C + c);
         }
         if(urand() < rate)
         {
-            mem[i].D *= ch;
+            mem[i].D += q*(mem[i].D + c);
         }
         if(urand() < rate)
         {
-            mem[i].E *= ch;
+            mem[i].E += q*(mem[i].E + c);
         }
     }
 }
