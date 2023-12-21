@@ -32,19 +32,13 @@ inline float pred(int t, params p) {
     return (p.A + p.B * (b - y))*b + p.C;
 }
 
-inline float err(int t, params p) {
-    float y = Y[t];
-    float b = (p.D *(y - Y[t-1]) + y)*p.E;
-    return (p.A + p.B * (b - y))*b + p.C - y;
-}
-
 inline float cost(params *p){
     // MAE -- not divided by number of train samples!
     float sum = 0.f, tmp;
     params pd = *p;
     for(int t = t_offset+1;t<t_curr;++t)  //t_curr points after the last element
     {
-        tmp = err(t, pd);
+        tmp = pred(t-t_offset, pd) - Y[t];
         sum += abs(tmp);
     }
     #if GLPRED_REGULATION
