@@ -25,6 +25,6 @@ inline unsigned urand()
 
 inline float frand(float min, float max)
 {
-    return min + (float)urand()*2.328306434370292e-10f * (max - min);
+    return min + ((float)urand()*2.328306434370292e-10f) * (max - min);
                                  // 2^-32
 }

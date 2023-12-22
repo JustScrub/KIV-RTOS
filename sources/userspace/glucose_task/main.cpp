@@ -1,16 +1,16 @@
 #include "genetic_train.cpp"
 //#include "glukose_pred.cpp" -- included in genetic_train.cpp
 #include "printing.cpp"
+#include "test_data.cpp"
 #include <stdalloc.h>
 #include <stdfile.h>
 #include <stdstring.h>
 #define ever (;;)
 #define DEBUG 0
 
-#define MAX_GEN 150
-#define MIN_COST 1e-4f
+#define MAX_GEN 200
 constexpr uint32_t CHROMO_NUM = 2000;//mem::PageSize / sizeof(chromo);
-constexpr uint32_t CHROMO_KEEP = CHROMO_NUM/20;
+constexpr uint32_t CHROMO_KEEP = CHROMO_NUM/2;
 
 extern int t_delta, t_pred, t_offset;
 extern int t_curr;
@@ -83,7 +83,7 @@ bool get_init_values()
  * 
  * @return int 0 if computation is stopped, 1 otherwise 
  */
-bool comp_step(chromo *mem, float *costs, params *p, float *result)
+bool comp_step(chromo *mem, float *costs, params *p)
 {
     float datum = atof(bfr);
 
@@ -95,12 +95,14 @@ bool comp_step(chromo *mem, float *costs, params *p, float *result)
     if(t_curr - t_offset <= 1)   // 1 because of backward difference
         return false;
     gen = 0; // reset the generation counter
+    int i;
     printf("Training...");
     
     // update the population
     popul_init(mem, CHROMO_NUM);
     popul_eval(mem, costs, CHROMO_NUM);
-    do{
+    for (gen = 0; gen < MAX_GEN; ++gen)
+    {
         #if DEBUG
             write(uart_fd, "generation: ", 12);
             printint(gen);
@@ -112,14 +114,16 @@ bool comp_step(chromo *mem, float *costs, params *p, float *result)
         if(scanf(bfr) > 3) // &&
         if(strncmp(bfr, "stop", 4) == 0)
         {
-            *result = pred(t_curr, *p);
             return true;
         }
-    }while(!popul_stop(mem, costs, CHROMO_NUM,++gen,MAX_GEN,MIN_COST)); // stop when the population is converged
+    } // stop when the population is converged
+
+    popul_select(mem, costs, CHROMO_NUM, CHROMO_KEEP); // don't mutate the best chromosomes
+    popul_eval(mem, costs, CHROMO_NUM);
+    i = popul_best(mem, costs, CHROMO_NUM);
 
     // get the best prediction
-    *p = mem[popul_best(mem, costs, CHROMO_NUM)];
-    *result = pred(t_curr, *p);
+    *p = mem[i];
     return true;
 }
 
@@ -130,13 +134,8 @@ int main()
     Y = (float *)malloc(sizeof(float)*GLUCOSE_N_DATA);
     params p = {0}; float result;
 
-    for (size_t i = 0; i < 50; i++)
-    {
-        Y[i] = i*10.f;
-    }
-    t_curr = 50;
-
     open_uart();
+    reset:
     printf("Glucose Evolution 1.0");
     printf("Author: Jakub Mlady (A23N0014P)");
 
@@ -149,18 +148,24 @@ int main()
         #endif
         printf(" - mutation rate must be between 0 and 1 and mutation magnitude must be positive");
     }
-    t_offset = t_pred/t_delta; 
+    t_offset = t_pred/t_delta;
 
     printf("Inputs valid. Preparing computational environment...");
     // Sike! actually generating bunch of random numbers so that I don't have to wait for the TRNG SWI
     rand_init(); // takes some time, since TRNG needs to wait for entropy :'( -- but still faster than TRNG reads
+    t_curr = 0;
+    #if TEST_DATA
+        prepare_test_data();
+    #endif
     printf("Done.");
 
     for ever
     {
+        printf("time: ", false);
+        printint(t_curr*t_delta);
         for ever
         {
-            printf("input glucose level or 'parameters' or 'inputs'");
+            printf("input glucose level or 'parameters', 'inputs' or 'reset'");
             bscanf(bfr);
             if(strncmp(bfr, "parameters", 10) == 0)
             { // print parameters
@@ -173,6 +178,10 @@ int main()
                     printfloat(Y[i]);
                 }
             }
+            else if(strncmp(bfr, "reset", 5)==0)
+            {
+                goto reset;
+            }
             else if(!is_numeric(bfr))
             {
                 printf("invalid input");
@@ -181,15 +190,14 @@ int main()
                 break;
         }
 
-        if(!comp_step(mem, costs, &p, &result))
+        if(!comp_step(mem, costs, &p))
         { // all data points have been used or not enough data points (t_curr < t_offset)
             printf("NaN");
             continue;
         }
+        result = pred(t_curr-1, p);
 
-        bzero(bfr, 100);
-        ftoa(result, bfr, 4);
         write(uart_fd, "prediction: ", 12);
-        printf(bfr);  // number ends in "ers"
+        printfloat(result,4);
     }
 }

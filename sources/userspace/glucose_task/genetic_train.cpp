@@ -3,7 +3,8 @@
 #include "random.cpp"
 #include <stdstring.h>
 #define GEN_CROSS_PROPORTIONAL 0
-constexpr float GEN_INIT_RANGE = 250.f;
+#define GEN_MUT_LINEAR 0
+constexpr float GEN_INIT_RANGE = 20.f;
 
 typedef params chromo;
 
@@ -117,6 +118,14 @@ void popul_qsel(chromo *mem, float *costs, int l, int r, int k)
     }
 }
 
+#if GEN_CROSS_PROPORTIONAL
+    #define gen_cross(P) \
+        .P = (ci*mem[a].P + ca*mem[i].P)*c,
+#else
+    #define gen_cross(P) \
+        .P = (mem[a].P + mem[i].P)*0.5f,
+#endif
+
 /**
  * @brief selects chromosomes for new population and crossbreeds them
  * 
@@ -132,31 +141,33 @@ void popul_select(chromo *mem, float *costs, int n, int keep)
     // breed the best chromosomes 
     for(int i=n-1; i>=keep; --i)
     {
-        unsigned a = urand() % (n); // range of unsigned
+        unsigned a = urand() % (keep); // range of unsigned
         #if GEN_CROSS_PROPORTIONAL
             float ca = costs[a];
             float ci = costs[i];
             float c = 1.f/(ci + ca);
-            mem[i] = (chromo){
-                .A = (ci*mem[a].A + ca*mem[i].A)*c,
-                .B = (ci*mem[a].B + ca*mem[i].B)*c,
-                .C = (ci*mem[a].C + ca*mem[i].C)*c,
-                .D = (ci*mem[a].D + ca*mem[i].D)*c,
-                .E = (ci*mem[a].E + ca*mem[i].E)*c,
-            };
-        #else
-            mem[i] = (chromo){
-                .A = (mem[a].A + mem[i].A)*0.5f,
-                .B = (mem[a].B + mem[i].B)*0.5f,
-                .C = (mem[a].C + mem[i].C)*0.5f,
-                .D = (mem[a].D + mem[i].D)*0.5f,
-                .E = (mem[a].E + mem[i].E)*0.5f,
-            };
         #endif
+        mem[i] = (chromo){
+            gen_cross(A)
+            gen_cross(B)
+            gen_cross(C)
+            gen_cross(D)
+            gen_cross(E)
+        };
     }
 }
+#undef gen_cross
 
 #include "printing.cpp"
+#if GEN_MUT_LINEAR
+    #define gen_delta(P) \
+        if(urand() < rate) \
+            {mem[i].P += q*(mem[i].P + c)}
+#else
+    #define gen_delta(P) \
+        if(urand() < rate) \
+            {mem[i].P += frand(-perc_change, perc_change);}
+#endif
 /**
  * @brief mutates chromosomes
  * 
@@ -168,31 +179,18 @@ void popul_mutate(chromo *mem, int n, unsigned rate, float perc_change=0.1f)
 {
     for(int i=0;i<n;++i)
     {
-        float q = frand(-perc_change, perc_change);
-        float c = frand(-GEN_INIT_RANGE, GEN_INIT_RANGE);
-
-        if(urand() < rate)
-        {
-            mem[i].A += q*(mem[i].A + c);
-        }
-        if(urand() < rate)
-        {
-            mem[i].B += q*(mem[i].B + c);
-        }
-        if(urand() < rate)
-        {
-            mem[i].C += q*(mem[i].C + c);
-        }
-        if(urand() < rate)
-        {
-            mem[i].D += q*(mem[i].D + c);
-        }
-        if(urand() < rate)
-        {
-            mem[i].E += q*(mem[i].E + c);
-        }
+        #if GEN_MUT_LINEAR
+            float q = frand(-perc_change, perc_change);
+            float c = frand(-GEN_INIT_RANGE, GEN_INIT_RANGE);
+        #endif
+        gen_delta(A)
+        gen_delta(B)
+        gen_delta(C)
+        gen_delta(D)
+        gen_delta(E)
     }
 }
+#undef gen_delta
 
 /**
  * @brief returns index of the best chromosome
@@ -213,21 +211,5 @@ int popul_best(chromo *mem, float *costs, int n)
         }
     }
     return best;
-}
-
-/**
- * @brief stop condition - returns 1 if the best chromosome is good enough or if the number of generations is too high
- * 
- * @param mem all chromosomes
- * @param costs the costs of the chromosomes
- * @param n number of chromosomes
- * @param gen current generation
- * @param max_gen maximum number of generations
- * @param min_cost minimum cost
- * @return int 1 if the best chromosome is good enough or if the number of generations is too high
- */
-bool popul_stop(chromo *mem, float *costs, int n, int gen, int max_gen, float min_cost)
-{
-    return (costs[popul_best(mem, costs, n)] < min_cost) || (gen >= max_gen);
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 #define GLPRED_REGULATION 0
+#define GLPRED_LINREG 0
 constexpr unsigned GLUCOSE_N_DATA = 0x100000 / sizeof(float); // 1MB
 
 
@@ -26,11 +27,22 @@ bool add_data(float datum)
 
 #define abs(x) ((x) > 0.f ? (x) : -(x))
 
-inline float pred(int t, params p) {
-    float y = Y[t];
-    float b = (p.D *(y - Y[t-1]) + y)*p.E;  // this should be /p.E !! but since it's a parameter, it will adapt
-    return (p.A + p.B * (b - y))*b + p.C;
-}
+#if !GLPRED_LINREG
+    inline float pred(int t, params p) {
+        float y = Y[t];
+        float b = (p.D *(y - Y[t-1]) + y)*p.E;  // this should be /p.E !! but since it's a parameter, it will adapt
+        return (p.A + p.B * (b - y))*b + p.C;
+    }
+#else
+    inline float pred(int t, params p)
+    {
+        float y= Y[t];
+        float y2= y*y;
+        float y3= y2*y;
+        float y4= y3*y;
+        return (p.A*y + p.B*y2 + p.C + p.D*y3 + p.E*y4);
+    }
+#endif
 
 inline float cost(params *p){
     // MAE -- not divided by number of train samples!
