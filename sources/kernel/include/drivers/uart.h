@@ -29,6 +29,7 @@ class CUART
         char mBuffer[UART_BFR_SIZE];
         unsigned int mBuffer_Tail = 0;
         unsigned int mBuffer_Count = 0;
+        uint32_t mIRQ_Count = UART_IRQ_WAIT;
 
     public:
         CUART(CAUX& aux);

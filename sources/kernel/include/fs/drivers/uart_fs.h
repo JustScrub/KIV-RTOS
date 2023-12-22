@@ -78,6 +78,7 @@ class CUART_File final : public IFile
                 {
                     params->baud_rate = sUART0.Get_Baud_Rate();
                     params->char_length = sUART0.Get_Char_Length();
+                    params->ISR_wait_cntr = sUART0.mIRQ_Count;
                     return true;
                 }
             }
@@ -89,6 +90,7 @@ class CUART_File final : public IFile
                 {
                     sUART0.Set_Baud_Rate(params->baud_rate);
                     sUART0.Set_Char_Length(params->char_length);
+                    sUART0.mIRQ_Count = params->ISR_wait_cntr;
                     return true;
                 }
             }

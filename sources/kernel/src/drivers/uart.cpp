@@ -44,6 +44,7 @@ bool CUART::Open()
     // nastavime vychozi rychlost a velikost znaku
     Set_Char_Length(NUART_Char_Length::Char_8);
     Set_Baud_Rate(NUART_Baud_Rate::BR_115200);
+    mIRQ_Count = UART_IRQ_WAIT;
 
     return true;
 }
@@ -181,7 +182,7 @@ void CUART::IRQ_Callback()
     if (!mOpened)
         return;
 
-    for(int i = 0; i < UART_IRQ_WAIT; i++)
+    for(int i = 0; i < mIRQ_Count; i++)
     {
         // TODO: overflow flag - pokud je buffer plny, zahodit znak a nastavit priznak
         if(mBuffer_Count >= UART_BFR_SIZE)

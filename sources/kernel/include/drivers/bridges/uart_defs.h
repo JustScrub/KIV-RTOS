@@ -23,4 +23,5 @@ struct TUART_IOCtl_Params
 {
     NUART_Char_Length char_length;
     NUART_Baud_Rate baud_rate;
+    uint32_t ISR_wait_cntr;
 };
