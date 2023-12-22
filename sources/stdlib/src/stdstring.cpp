@@ -90,12 +90,20 @@ int __slow_pow(int base, int exp)
 int ftoa(float n, char* res, int afterpoint)
 {
         int i = 0;
+
         if(n < 0)
         {
                 res[0] = '-'; // add minus sign
                 n = -n;
                 i++;
         }
+        
+        if( n >= 2147483647.000f)
+        {
+                res[i] = 'i';res[i+1] = 'n';res[i+2] = 'f';res[3+i] = '\0';
+                return 3+i;
+        }
+
 
     // Extract integer part
     int ipart = (int)n;
